@@ -1,0 +1,25 @@
+# Mac
+.DS_Store
+
+# Project
+.idea/
+todo.txt
+
+
+# Python
+__pycache__
+*.pyc
+.env/
+
+# Jupyter notebook
+.ipynb_checkpoints/
+test.ipynb
+
+# Data
+data/credentials.txt # credentials for 'moonboard.com'
+data/debug.log
+data/raw
+
+# Model training
+.texpadtmp/
+save/

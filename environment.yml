@@ -1,0 +1,26 @@
+name: deepclimb
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+# TODO: check version on GCloud
+  - python=3.6
+  - pip
+  - numpy
+# not used currently
+  - ujson
+# to display progress bar
+  - tqdm
+# to scrap the data
+  - selenium=3.141
+# for deep learning
+# TODO: check version on GCloud
+  - pytorch=1.0.0
+# to display training curves in real time
+  - tensorboard
+  - tensorflow
+  - tensorboardX
+  - pip:
+# TODO: check version on GCloud
+    - torch==1.0.0
