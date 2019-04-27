@@ -133,8 +133,9 @@ def get_problem(pb_url, data_file):
             response = urllib.request.urlopen(req)
             
         except:
-            print("Error reading response, trying again.")
+            print("Error reading response at url {}, trying again...".format(pb_url))
             n_try += 1
+            time.sleep(0.1)
     
     # failure to reach the given url
     if response == None:
@@ -243,12 +244,17 @@ def scrap_moonboard(browser, MBversion, dirName):
     # path to the output file
     path_out = os.path.join(dirName, "{}_moonboard_data.txt".format(MBversion))
     
+    # we do not overwrite this file: change the following line if you want to
+    overwrite = False
     # check if there is already a version of this file
     if os.path.exists(path_out):
-        # we do not overwrite this file: uncomment the following lines if you want to
-        raise FileExistsError("Output file for version {} already exists.".format(MBversion))
-        #print("Output file for version {} already exists, removing...".format(MBversion))
-        #os.remove(path_out)
+        if overwrite:
+            print("Output file for version {} already exists, removing...".format(MBversion))
+            os.remove(path_out)
+        else:
+            print("Output file for version {} already exists, exiting...".format(MBversion))
+            return
+            #raise FileExistsError("Output file for version {} already exists.".format(MBversion))
     
     # create the output file
     with open(path_out, 'a') as data_file:

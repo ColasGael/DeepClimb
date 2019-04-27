@@ -13,7 +13,8 @@ To activate the environment:
 ### Scrap the data
 Folder: "data/raw"
 
-The data has been already scrapped from [moonboard.com](https://www.moonboard.com/Problems/Index). Scraping data: 26/04/2019.
+The data has been already scrapped from [moonboard.com](https://www.moonboard.com/Problems/Index). It took around 15 hours.
+Scraping data: 26/04/2019.
 
 If you want to update the scraping or scrap a different dataset.
 - modify "data/scraper.py" to handle the modifications ;
