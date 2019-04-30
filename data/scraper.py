@@ -8,7 +8,9 @@ Date: 26/04/2019
 Versions of the MoonBoard handled by the scraper:
 "MoonBoard 2016" and "MoonBoard 2017" ("40° variant")
 
-Thanks to Peter Satterthwaite for providing the starter code
+Authors:
+    Peter Satterthwaite: provided starter code
+    Gael Colas
 '''
 
 # PACKAGES

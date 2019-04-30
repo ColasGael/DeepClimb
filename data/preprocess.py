@@ -1,5 +1,22 @@
 #!/usr/bin/env python3
 
+'''Script to preprocess the scraped data into a clean dataset
+    input = binary matrix representing a problem on the moonboard
+    label = class number representing the grade of the problem
+
+This script was compatible with (the String representation of a problem information on) "moonboard.com" at the following date:
+Date: 04/2019
+
+Versions of the MoonBoard handled by the preprocessing:
+"MoonBoard 2016" and "MoonBoard 2017" ("40° variant")
+
+Grades handled by the preprocessing:
+('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+')
+
+Authors:
+    Gael Colas
+'''
+
 # PACKAGES
 # to interact with file and folders
 import os 
@@ -7,6 +24,8 @@ import os
 import re
 # to create the matrix representations of examples
 import numpy as np
+# to save data files
+import ujson as json
 
 # PARAMETERS
 # versions of the MoonBoard handled
@@ -25,6 +44,24 @@ COLUMNS = [str(chr(ascii_nb)) for ascii_nb in range(ord('A'), ord('K')+1)]
 ROWS = [str(i) for i in range(GRID_DIMS[0],0,-1)]
 
 def moves2binary(moves_list, moves_type, move2coord):
+    '''Convert a list of moves into a binary representation of the problem
+    
+    Args:
+        'moves_list' (list of String): list of the moves of the problem
+        'moves_type' (list of String): list of the type of each move (start: 0, intermediate: 1 or end: 2 move)
+            moves_type[2*k] = "true" if moves_list[k] is a start move, "false" otherwise
+            moves_type[2*k+1] = "true" if moves_list[k] is a end move, "false" otherwise
+        'move2coord' (dict: String -> (int,int)): dictionary mapping the move String to its coordinate in the binary grid
+        
+    Return:
+        'x_binary' (np.array, shape=GRID_DIMS, dtype=int): binary matrix representing the problem on the MoonBoard
+            x_binary[i,j] = 1 if you can use this move in the problem, 0 otherwise
+        'x_type' (np.array, shape=GRID_DIMS, dtype=int): int matrix representing the type of each move
+            x_type[i,j] = 0 if this is a start move
+            x_type[i,j] = 1 if this is an intermediate move
+            x_type[i,j] = 2 if this is an end move
+            x_type[i,j] = -1 if this is not a move of the problem
+    '''
     assert(2*len(moves_list) == len(moves_type))
 
     # empty binary grid
@@ -49,6 +86,27 @@ def moves2binary(moves_list, moves_type, move2coord):
     return x_binary, x_type
 
 def read_problem(problem_string, field2pos, move2coord, grade2class):
+    '''Convert a String representation of the problem information into a (input, label)-pair
+    
+    Args:
+        'problem_string' (String): String representation of the problem
+        'field2pos' (dict: String -> int): dictionary mapping information fields to their order of appearance in the String representation
+        'move2coord' (dict: String -> (int,int)): dictionary mapping the move String to its coordinate in the binary grid
+        'grade2class' (dict: String -> int): dictionary mapping the grade String to its corresponding int class label
+    
+    Return:
+        'x_binary' (np.array, shape=GRID_DIMS, dtype=int): binary matrix representing the problem on the MoonBoard
+            x_binary[i,j] = 1 if you can use this move in the problem, 0 otherwise
+        'x_type' (np.array, shape=GRID_DIMS, dtype=int): int matrix representing the type of each move
+            x_type[i,j] = 0 if this is a start move
+            x_type[i,j] = 1 if this is an intermediate move
+            x_type[i,j] = 2 if this is an end move
+            x_type[i,j] = -1 if this is not a move of the problem
+        'y' (int): class label of the problem given by the setter
+            y = None, if the grade of the problem is not handled by the preprocessing
+        'y_user' (int): class label of the problem given by the user
+            y_user = -1, if no grade has been given to the problem by the user
+    '''
     # clean the String
     problem_string = problem_string.replace('"', '')
         
@@ -57,7 +115,7 @@ def read_problem(problem_string, field2pos, move2coord, grade2class):
         # position of the field in the list of FIELDS
         field_ind = field2pos[field] 
         # where the useful information starts in the string
-        field_start = problem_string.find(FIELDS[field_ind]) + len(FIELDS[field_ind]) +1 
+        field_start = problem_string.find(FIELDS[field_ind]) + len(FIELDS[field_ind])
         # where the useful information ends in the string
         field_end = problem_string.find(FIELDS[field_ind+1], field_start) -1 
         # information stored in the field
@@ -82,6 +140,22 @@ def read_problem(problem_string, field2pos, move2coord, grade2class):
     return x_binary, x_type, y, y_user
     
 def read_problems(raw_data_path): 
+    '''Convert the scraped data into a clean dataset
+    
+    Args:
+        'raw_data_path' (String): path to the scraped data
+    
+    Return:
+        'X_binary' (np.array, shape=(n_examples, prod(GRID_DIMS)), dtype=int): design matrix
+            X_binary[k, :] = flatten binary matrix representing the problem k on the MoonBoard
+        'X_type' (np.array, shape=(n_examples, prod(GRID_DIMS)), dtype=int): int matrix storing the type of each move for every problem
+            X_type[k, :] = flatten int matrix representing the type of each move for problem k
+        'Y' (np.array, shape=(n_examples,), dtype=int): label vector
+            Y[k] = class label of problem k given by the setter
+        'Y_user' (np.array, shape=(n_examples,), dtype=int): label given by the user vector
+            Y_user[k] = class label of problem k given by the user
+        'grade2class' (dict: String -> int): dictionary mapping the grade String to its corresponding int class label
+    '''
     # map the useful fields to their position in the list of fields
     field2pos = {field: FIELDS.index(field) for field in USEFUL_FIELDS}
     
@@ -108,8 +182,9 @@ def read_problems(raw_data_path):
     # user predicted grade: 1 label = 1 user grade
     Y_user = np.zeros((n_examples,), dtype=int)
     
+    i = 0
     # read one line (corresponding to one problem information) at a time
-    for i, problem_string in enumerate(problems):       
+    for problem_string in problems:       
         # preprocess the corresponding problem
         x_binary, x_type, y, y_user = read_problem(problem_string, field2pos, move2coord, grade2class)
         
@@ -119,11 +194,13 @@ def read_problems(raw_data_path):
             X_type[i,:] = np.reshape(x_type, (-1,))
             Y[i] = y
             Y_user[i] = y_user
+            
+            i += 1
         
     # cleanup: close the file
     data.close()
     
-    return X, X_type, Y, Y_user
+    return X[:i,:], X_type[:i,:], Y[:i], Y_user[:i], grade2class
     
 def main(rawDirName, ppDirName):
 
@@ -149,16 +226,23 @@ def main(rawDirName, ppDirName):
         
         print("Preprocessing the scraped data...")
         # preprocess the raw data files
-        X, X_type, y, y_pred = read_problems(path_in)
+        X, X_type, y, y_user, grade2class = read_problems(path_in)
         
         print("Writing the preprocessed data to disk...")
-        filenames_out = ["X", "X_type", "y", "y_pred"]
+        filenames_out = ["X", "X_type", "y", "y_user", "grade2class"]
         # save the preprocessed data
-        for i, array_out in enumerate([X, X_type, y, y_pred]):
+        for i, data in enumerate([X, X_type, y, y_user, grade2class]):
             # path to the output file
-            path_out = os.path.join(ppVersionDirName, filenames_out[i]+".csv")
-            np.savetxt(path_out, array_out, delimiter=",")
-    
+            path_out = os.path.join(ppVersionDirName, filenames_out[i])
+            
+            if isinstance(data,(np.ndarray)):
+                # save the numpy arrays
+                np.save(path_out, data)
+            else:
+                with open(path_out+'.json', 'w') as json_file:  
+                    # save the dictionaries
+                    json.dump(data, json_file)
+        
 if __name__ == "__main__":
     # directory where the scraped files are stored
     rawDirName = 'raw' 
