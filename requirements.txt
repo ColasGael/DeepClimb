@@ -1,5 +1,0 @@
-python version TODO
-tqdm
-selenium
-json
-urllib

@@ -7,18 +7,18 @@ todo.txt
 
 
 # Python
-__pycache__
-*.pyc
+**/__pycache__
+**.pyc
 .env/
 
 # Jupyter notebook
-.ipynb_checkpoints/
-test.ipynb
+**/.ipynb_checkpoints/
+draft.ipynb
 
 # Data
 data/credentials.txt # credentials for 'moonboard.com'
 data/debug.log
-data/raw
+data/binary
 
 # Model training
 .texpadtmp/

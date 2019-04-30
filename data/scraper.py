@@ -27,7 +27,6 @@ import urllib.request # present in standard library
 #import json # to read data
 
 # PARAMETERS
-dirName = 'raw' # directory where we want to store the examples
 version2option = {2016: 'MoonBoard 2016', 2017: 'MoonBoard Masters 2017'} # version of the MoonBoard handled by the scraper
 GRADES = ('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+')
 
@@ -287,9 +286,9 @@ def scrap_moonboard(browser, MBversion, dirName):
                 
         print('{} / {} examples processed'.format(n_examples_processed, n_examples))
                 
-def main():    
+def main(dirName):    
     try:
-        # create a directory to store the scrapping outputs
+        # create a directory to store the scraping outputs
         os.mkdir(dirName)
         print("Directory '{}' created.".format(dirName))
     except FileExistsError:
@@ -343,5 +342,7 @@ def main():
         browser.close()
         raise e
         
-if __name__=="__main__":
-    main()
+if __name__ == "__main__":
+    # directory where we want to store the scraped data
+    dirName = 'raw' 
+    main(dirName)
