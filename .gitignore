@@ -3,8 +3,8 @@
 
 # Project
 .idea/
-todo.txt
-
+TODO.txt
+draft.ipynb
 
 # Python
 **/__pycache__
@@ -13,7 +13,6 @@ todo.txt
 
 # Jupyter notebook
 **/.ipynb_checkpoints/
-draft.ipynb
 
 # Data
 data/credentials.txt # credentials for 'moonboard.com'

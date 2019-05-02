@@ -7,9 +7,6 @@
 This script was compatible with (the String representation of a problem information on) "moonboard.com" at the following date:
 Date: 04/2019
 
-Versions of the MoonBoard handled by the preprocessing:
-"MoonBoard 2016" and "MoonBoard 2017" ("40° variant")
-
 Grades handled by the preprocessing:
 ('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+')
 
@@ -28,16 +25,12 @@ import numpy as np
 import ujson as json
 
 # PARAMETERS
-# versions of the MoonBoard handled
-VERSIONS = ["2016", "2017"]
 # list of all the fields describing the problem in the order they appear in the raw scraped file
 FIELDS = ["Method:", "Name:", "Grade:", "UserGrade:", "MoonBoardConfiguration:", "MoonBoardConfigurationId:", "Setter:", "FirstAscender:", "Rating:", "UserRating:", 
 "Repeats:", "Attempts:", "Holdsetup:", "IsBenchmark:", "IsAssessmentProblem:", "ProblemType:", "Moves:", "Holdsets:", "Locations:", "RepeatText", "NumberOfTries::",
 "NameForUrl:", "Upgraded:", "Downgraded:", "Id:", "ApiId:", "DateInserted:", "DateUpdated:", "DateDeleted:", "DateTimeString:"]
 # fields we want to extract
 USEFUL_FIELDS = ["Grade:", "UserGrade:", "Moves:"]
-# problems' grades considered
-GRADES = ('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+')
 # MoonBoard grid properties
 GRID_DIMS = (18, 11) # dimensions
 COLUMNS = [str(chr(ascii_nb)) for ascii_nb in range(ord('A'), ord('K')+1)]
@@ -139,7 +132,7 @@ def read_problem(problem_string, field2pos, move2coord, grade2class):
     
     return x_binary, x_type, y, y_user
     
-def read_problems(raw_data_path): 
+def read_problems(raw_data_path, GRADES): 
     '''Convert the scraped data into a clean dataset
     
     Args:
@@ -202,7 +195,8 @@ def read_problems(raw_data_path):
     
     return X[:i,:], X_type[:i,:], Y[:i], Y_user[:i], grade2class
     
-def main(rawDirName, ppDirName):
+def main(rawDirName, ppDirName, filenames_out, VERSIONS, GRADES):
+    print("\n BINARY PREPROCESSING\n")
 
     try:
         # create a directory to store the preprocessed data
@@ -212,6 +206,7 @@ def main(rawDirName, ppDirName):
         print("Directory '{}' already exists.".format(ppDirName))
 
     for MBversion in VERSIONS:
+        print("{:-^100}".format("---Preprocessing for MoonBoard version {}---".format(MBversion)))
         # path to raw datafile
         path_in = os.path.join(rawDirName, "{}_moonboard_data.txt".format(MBversion))
         
@@ -226,14 +221,18 @@ def main(rawDirName, ppDirName):
         
         print("Preprocessing the scraped data...")
         # preprocess the raw data files
-        X, X_type, y, y_user, grade2class = read_problems(path_in)
+        X, X_type, y, y_user, grade2class = read_problems(path_in, GRADES)
         
+        # number of examples 
+        n_examples = X.shape[0]
+        print("There are {} examples (distinct MoonBoard version {} problems).".format(n_examples, MBversion))
+            
         print("Writing the preprocessed data to disk...")
-        filenames_out = ["X", "X_type", "y", "y_user", "grade2class"]
+        filenames_out = filenames_out + ["grade2class"]
         # save the preprocessed data
-        for i, data in enumerate([X, X_type, y, y_user, grade2class]):
+        for k, data in enumerate([X, X_type, y, y_user, grade2class]):
             # path to the output file
-            path_out = os.path.join(ppVersionDirName, filenames_out[i])
+            path_out = os.path.join(ppVersionDirName, filenames_out[k])
             
             if isinstance(data,(np.ndarray)):
                 # save the numpy arrays
@@ -242,11 +241,18 @@ def main(rawDirName, ppDirName):
                 with open(path_out+'.json', 'w') as json_file:  
                     # save the dictionaries
                     json.dump(data, json_file)
+            print(filenames_out[k], "saved!")
         
 if __name__ == "__main__":
+    # versions of the MoonBoard handled
+    VERSIONS = ["2016", "2017"]
+    # problems' grades considered
+    GRADES = ('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+')
     # directory where the scraped files are stored
     rawDirName = 'raw' 
     # directory where to store the preprocessed files
     ppDirName = 'binary'
+    # filenames for the preprocessed data
+    filenames = ["X", "X_type", "y", "y_user"] 
     
-    main(rawDirName, ppDirName)     
+    main(rawDirName, ppDirName, filenames, VERSIONS, GRADES)     

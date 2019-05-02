@@ -289,6 +289,8 @@ def scrap_moonboard(browser, MBversion, dirName):
         print('{} / {} examples processed'.format(n_examples_processed, n_examples))
                 
 def main(dirName):    
+    print("\n SCRAPING DATA\n")
+
     try:
         # create a directory to store the scraping outputs
         os.mkdir(dirName)

@@ -28,4 +28,4 @@ Selenium [documentation](https://selenium-python.readthedocs.io/locating-element
 
 ### Preprocess the data
 
- 
+ Run: `python setup.py`

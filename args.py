@@ -2,10 +2,13 @@
 
 Author:
     Chris Chute:  provided starter code
+    Gael Colas
 """
 
 import argparse
 
+# filenames of the files describing the data
+DATA_FILENAMES = ["X", "X_type", "y", "y_user"]
 
 def get_setup_args():
     """Get arguments needed in setup.py."""
@@ -13,70 +16,28 @@ def get_setup_args():
 
     add_common_args(parser)
 
-    parser.add_argument('--glove_url',
+    # directory where the scraped data is stored
+    parser.add_argument('--scraped_data_dir',
                         type=str,
-                        default='http://nlp.stanford.edu/data/glove.840B.300d.zip')
-    parser.add_argument('--dev_meta_file',
-                        type=str,
-                        default='./data/dev_meta.json')
-    parser.add_argument('--test_meta_file',
-                        type=str,
-                        default='./data/test_meta.json')
-    parser.add_argument('--word2idx_file',
-                        type=str,
-                        default='./data/word2idx.json')
-    parser.add_argument('--char2idx_file',
-                        type=str,
-                        default='./data/char2idx.json')
-    parser.add_argument('--pos2idx_file', # NEW
-                        type=str,
-                        default='./data/pos2idx.json')
-    parser.add_argument('--ner2idx_file', # NEW
-                        type=str,
-                        default='./data/ner2idx.json')                        
-    parser.add_argument('--answer_file',
-                        type=str,
-                        default='./data/answer.json')
-    parser.add_argument('--para_limit',
-                        type=int,
-                        default=400,
-                        help='Max number of words in a paragraph')
-    parser.add_argument('--ques_limit',
-                        type=int,
-                        default=50,
-                        help='Max number of words to keep from a question')
-    parser.add_argument('--test_para_limit',
-                        type=int,
-                        default=1000,
-                        help='Max number of words in a paragraph at test time')
-    parser.add_argument('--test_ques_limit',
-                        type=int,
-                        default=100,
-                        help='Max number of words in a question at test time')
-    parser.add_argument('--char_dim',
-                        type=int,
-                        default=64,
-                        help='Size of char vectors (char-level embeddings)')
-    parser.add_argument('--glove_dim',
-                        type=int,
-                        default=300,
-                        help='Size of GloVe word vectors to use')
-    parser.add_argument('--glove_num_vecs',
-                        type=int,
-                        default=2196017,
-                        help='Number of GloVe vectors')
-    parser.add_argument('--ans_limit',
-                        type=int,
-                        default=30,
-                        help='Max number of words in a training example answer')
-    parser.add_argument('--char_limit',
-                        type=int,
-                        default=16,
-                        help='Max number of chars to keep from a word')
-    parser.add_argument('--include_test_examples',
-                        type=lambda s: s.lower().startswith('t'),
-                        default=True,
-                        help='Process examples from the test set')
+                        default="./data/raw",
+                        help="If ./data/raw is empty, run > python scraper.py")
+    parser.add_argument('--data_filenames',
+                        type=list,
+                        default=DATA_FILENAMES,
+                        help="Filenames of the useful datafiles")
+    parser.add_argument('--train_split',
+                        type=float,
+                        default=0.8,
+                        help="Fraction of the dataset to put in the train-set")
+    parser.add_argument('--dev_split',
+                        type=float,
+                        default=0.1,
+                        help="Fraction of the dataset to put in the dev-set")    
+    parser.add_argument('--test_split',
+                        type=float,
+                        default=0.1,
+                        help="Fraction of the dataset to put in the test-set")
+    # TODO: add url of pretrained models' weights
 
     args = parser.parse_args()
 
@@ -174,15 +135,20 @@ def get_test_args():
 
 def add_common_args(parser):
     """Add arguments common to all 3 scripts: setup.py, train.py, test.py"""
-    parser.add_argument('--train_record_file',
+    # directory where the binary datasets are stored
+    parser.add_argument('--binary_data_dir',
                         type=str,
-                        default='./data/train.npz')
-    parser.add_argument('--dev_record_file',
-                        type=str,
-                        default='./data/dev.npz')
-    parser.add_argument('--test_record_file',
-                        type=str,
-                        default='./data/test.npz')
+                        default="./data/binary")
+    # versions of the MoonBoard handled
+    parser.add_argument('--MB_versions',
+                        type=list,
+                        default=["2016", "2017"],
+                        help="if you want to handle different versions of the MoonBoard, you need to adapt the scraping script and run > python scraper.py")
+    # problems' grades considered
+    parser.add_argument('--grades',
+                        type=tuple,
+                        default=('6A+','6B','6B+','6C','6C+','7A','7A+','7B','7B+','7C','7C+','8A','8A+','8B','8B+'),
+                        help="if you want to handle other grades of the MoonBoard, you need to adapt the scraping script and run > python scraper.py")
 
 
 def add_train_test_args(parser):
