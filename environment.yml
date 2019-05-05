@@ -8,7 +8,7 @@ dependencies:
   - python=3.6
   - pip
   - numpy
-# to save data files
+# to save data files (especially np.array)
   - ujson
 # to display progress bar
   - tqdm

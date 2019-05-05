@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 """Split the preprocessed datasets into Train / Validation and Test sets
 
 The split is random.
@@ -22,7 +21,7 @@ from random import seed
 # progress bar
 from tqdm import trange
 
-def split_traindevtest(data, split_frac):
+def split_trainvaltest(data, split_frac):
     """Split random shuffled data into splits of size given by 'split'
     
     Args:
@@ -49,7 +48,7 @@ def split_traindevtest(data, split_frac):
     
     # split
     data_splits = np.split(data, split_idx)
-        
+            
     return data_splits
 
 def split_sanity_check(ppDirName, VERSIONS, filenames_in, split_names):
@@ -172,15 +171,15 @@ def main(ppDirName, VERSIONS, filenames_in, split_dict):
                 perm_before = np.random.permutation(data.shape[0])
             data = data[perm_before,:]   
             
-            # train/dev/test splits
+            # train/val/test splits
             data_splits_list = []
             # split per class to preserve the class distribution
             for c in set(y):
                 # subset of examples of the given class
-                data_subset = data[y == c,:]
+                data_subset = data[y[perm_before] == c,:]
                 
-                # split into train/dev/test
-                data_splits_y = split_traindevtest(data_subset, split_dict.values())
+                # split into train/val/test
+                data_splits_y = split_trainvaltest(data_subset, split_dict.values())
                 
                 # save the splits
                 data_splits_list.append(data_splits_y)
@@ -214,7 +213,7 @@ if __name__ ==  "__main__":
     # files in the dataset to split
     filenames_in = ["X", "X_type", "y", "y_user"]
     # dataset split
-    split_dict = {"test": 0.1, "dev": 0.1, "train": 0.8}
+    split_dict = {"test": 0.1, "val": 0.1, "train": 0.8}
     
     main(ppDirName, VERSIONS, filenames_in, split_dict)    
     

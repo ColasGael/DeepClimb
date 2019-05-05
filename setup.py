@@ -18,8 +18,8 @@ if __name__ == '__main__':
     # pre-process the scraped data
     binary_preprocess.main(args.scraped_data_dir, args.binary_data_dir, args.data_filenames, args.MB_versions, args.grades)
     
-    # split the dataset in train/dev/test
-    split_dict = {"test": args.test_split, "dev": args.dev_split, "train": args.train_split}
+    # split the dataset in train/val/test
+    split_dict = {"test": args.test_split, "val": args.dev_split, "train": args.train_split}
     dataset_split.main(args.binary_data_dir, args.MB_versions, args.data_filenames, split_dict)
     
     # download the models' pre-trained weights

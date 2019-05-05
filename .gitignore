@@ -21,4 +21,4 @@ data/binary
 
 # Model training
 .texpadtmp/
-save/
+save/*
