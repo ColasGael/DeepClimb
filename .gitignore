@@ -14,11 +14,6 @@ draft.ipynb
 # Jupyter notebook
 **/.ipynb_checkpoints/
 
-# Data
-data/credentials.txt # credentials for 'moonboard.com'
-data/debug.log
-data/binary
-
 # Model training
 .texpadtmp/
 save/*

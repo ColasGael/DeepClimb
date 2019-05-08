@@ -139,6 +139,10 @@ def add_common_args(parser):
     parser.add_argument('--binary_data_dir',
                         type=str,
                         default="./data/binary")
+    # directory where the image datasets are stored
+    parser.add_argument('--image_data_dir',
+                        type=str,
+                        default="./data/image")
     # versions of the MoonBoard handled
     parser.add_argument('--MB_versions',
                         type=list,

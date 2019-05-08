@@ -22,7 +22,7 @@ from random import seed
 from tqdm import trange
 
 def split_trainvaltest(data, split_frac):
-    """Split random shuffled data into splits of size given by 'split'
+    '''Split random shuffled data into splits of size given by 'split'
     
     Args:
         'data' (np.array, shape=(n_examples,?): random shuffled data
@@ -34,7 +34,7 @@ def split_trainvaltest(data, split_frac):
         
     Remarks:
         All the fraction of 'split_frac' should sum to one: we want to use the whole dataset.
-    """
+    '''
     assert (sum(split_frac) == 1), "The splits' fractions do not sum to 1!"
     
     # number of examples
@@ -52,7 +52,7 @@ def split_trainvaltest(data, split_frac):
     return data_splits
 
 def split_sanity_check(ppDirName, VERSIONS, filenames_in, split_names):
-    """Check that the split is valid
+    '''Check that the split is valid
     
     Args:
         'ppDirName' (String): path to the directory where the preprocessed files are stored
@@ -61,11 +61,10 @@ def split_sanity_check(ppDirName, VERSIONS, filenames_in, split_names):
     
     Remark:
         For the split to be valid: if you concatenate all the splits, this new dataset should be a permutation of the old one (dataset before splitting).
-    """
+    '''
     
     def isPermutation(A, B):
-        """
-        Check if two arrays are permutation of each other
+        '''Check if two arrays are permutation of each other
         
         Args:
             'A' (np.array)
@@ -73,7 +72,7 @@ def split_sanity_check(ppDirName, VERSIONS, filenames_in, split_names):
             
         Return:
             'isPermutation' = True if 'A' and 'B' are permutations of each other.
-        """
+        '''
         # check that the arrays have the same shape
         if not (A.shape == B.shape):
             return False

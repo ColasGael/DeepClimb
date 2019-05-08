@@ -14,6 +14,8 @@ dependencies:
   - tqdm
 # to scrap the data
   - selenium=3.141
+ # to handle images
+  - Pillow
 # for deep learning
 # TODO: check version on GCloud
   - pytorch=1.0.0

@@ -1,0 +1,5 @@
+# Data
+data/credentials.txt # credentials for 'moonboard.com'
+data/debug.log
+data/binary
+data/image

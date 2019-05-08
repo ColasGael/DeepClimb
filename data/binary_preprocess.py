@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
-'''Script to preprocess the scraped data into a clean dataset
-    input = binary matrix representing a problem on the moonboard
+'''Preprocess the scraped String data into a clean dataset
+    feature = binary matrix representing a problem on the moonboard
     label = class number representing the grade of the problem
 
 This script was compatible with (the String representation of a problem information on) "moonboard.com" at the following date:
