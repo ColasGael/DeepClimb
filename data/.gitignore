@@ -1,5 +1,5 @@
 # Data
-credentials.txt # credentials for 'moonboard.com'
+credentials.txt
 debug.log
 binary/*
 image/*
