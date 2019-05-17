@@ -4,6 +4,8 @@
     input = binary matrix indicating the available holds for a problem
     output = image where the available holds are circled on the MoonBoard template image
 
+Original size of images: (C, H, W) = (3, 1000, 650)
+    
 Color code:
     - start holds: green
     - intermediate holds: blue
@@ -49,21 +51,32 @@ def draw_circle_wrapper(im, center, radius, width, color=(255,0,0,255), draw=Non
     for i in range(width):
         draw.ellipse((x-r-i, y-r-i, x+r+i, y+r+i), outline=color)
 
-def resize_wrapper(im, new_width=256):
+def resize_wrapper(im, new_width=256, new_height=None):
     '''Resize the input image while preserving the aspect ratio
     
     Args:
         'im' (PIL.Image): image to resize
-        'new_width (int): width of the resized image
+        'new_width' (int, default=256): width of the resized image
+        'new_height' (int, default=None): height of the resized image
     
     Return:
-        'im_resized' (PIL.Image): resized image with width 'new_width'        
+        'im_resized' (PIL.Image): resized image with width 'new_width'  
+
+    Remark:
+        The resize operation preserve the aspect ratio.
+        If 'new_height' is not None, we use this argument to resize the image.
+        Otherwise, we use 'new_width' to resize the image.
     '''
     # original image dimensions
     width, height = im.size
-    
+
     # resized image dimensions: preserve the aspect ratio
-    new_height = int(new_width* height / width)
+    if new_height is not None:
+        new_height = int(new_height)
+        new_width = int(new_height* width / height)
+    else:
+        new_width = int(new_width)
+        new_height = int(new_width* height / width)
     
     # resized image
     im_resized = im.resize((new_width, new_height), Image.BILINEAR)
@@ -147,11 +160,15 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
         print("Directory '{}' already exists.".format(imDirName))
 
     for MBversion in VERSIONS:
+        MBversion = str(MBversion)
         print("{:-^100}".format("---Image Preprocessing for MoonBoard version {}---".format(MBversion)))
 
         # load the blank template of the MoonBoard wall
         template_im = Image.open(os.path.join(rawDirName, "{}_moonboard_empty.png".format(MBversion)))
-    
+        
+        # convert from RGBA (.png) to RGB (.jpg)
+        template_im = template_im.convert('RGB')
+
         # path to the datafiles
         path_in = os.path.join(binDirName, MBversion)
         
@@ -190,10 +207,10 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
                 x_im = binary2image(x_binary, x_type, template_im)
                 
                 # save the image: "<label>_<split>_<example_nb>.png"
-                im_name = "{}_{}_{}.png".format(y[k], split_name, k)
+                im_name = "{}_{}_{}.jpg".format(y[k], split_name, k)
                 
                 # save the image
-                x_im.save(os.path.join(splitDirName, im_name))
+                x_im.save(os.path.join(splitDirName, im_name), "JPEG")
             
 if __name__ == "__main__":
     # versions of the MoonBoard handled

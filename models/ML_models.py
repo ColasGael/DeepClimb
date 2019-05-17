@@ -1,3 +1,11 @@
+"""Machine Learning models: Bernoulli Naive Bayes.
+
+These models handle the binary representation of examples.
+
+Authors:
+    Gael Colas
+"""
+
 # to interact with file and folders
 import os 
 # to handle the matrix representations of examples
@@ -6,7 +14,7 @@ import numpy as np
 import ujson as json
 
 class NaiveBayes:
-    """Naive Bayes multi-variate Bernouilli event model with Laplace smoothing
+    """Naive Bayes multi-variate Bernoulli event model with Laplace smoothing
     
     Attributes:
         'parameters' (dict): dictionary storing the model parameteres

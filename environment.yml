@@ -26,3 +26,4 @@ dependencies:
   - pip:
 # TODO: check version on GCloud
     - torch==1.0.0
+    - torchvision

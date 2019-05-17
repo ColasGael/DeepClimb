@@ -24,6 +24,6 @@ if __name__ == '__main__':
     
     # convert the binary representation into an image representation
     image_preprocess.main(args.scraped_data_dir, args.binary_data_dir, args.image_data_dir, list(split_dict.keys()), args.MB_versions)
-
+    
     # download the models' pre-trained weights
     #download(args_)
