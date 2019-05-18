@@ -1,6 +1,9 @@
 """Build and preprocess the datasets from the scraped files and Download the models' pre-trained weights
 
 Usage:
+    Do once:
+    > conda env create -f environment.yml
+    Then:
     > source activate deepclimb
     > python setup.py
 
