@@ -73,14 +73,13 @@ def get_train_args():
     add_common_args(parser)
     add_train_test_args(parser)
     
-    # change into eval_epochs TODO
-    parser.add_argument('--eval_steps',
+    parser.add_argument('--eval_epochs',
                         type=int,
-                        default=50000,
-                        help='Number of steps between successive evaluations.')
+                        default=3,
+                        help='Number of epochs between successive evaluations.')
     parser.add_argument('--lr',
                         type=float,
-                        default=0.5,
+                        default=0.01,
                         help='Learning rate.')
     parser.add_argument('--l2_wd',
                         type=float,
@@ -141,12 +140,12 @@ def get_test_args():
 
     parser.add_argument('--split',
                         type=str,
-                        default='dev',
-                        choices=('train', 'dev', 'test'),
+                        default='val',
+                        choices=('train', 'dev', 'val', 'test'),
                         help='Split to use for testing.')
     parser.add_argument('--pred_file',
                         type=str,
-                        default='prediction.csv',
+                        default='predictions.csv',
                         help='Name for prediction file.')
 
     # Require load_path for test.py
@@ -177,6 +176,11 @@ def add_train_test_args(parser):
                         default=64,
                         help='Batch size per GPU. Scales automatically when \
                               multiple GPUs are available.')
+    parser.add_argument('--train_split',
+                        type=str,
+                        default='train',
+                        choices=('train', 'dev'),
+                        help='You can use the development set, small fraction of the train set, for debugging.')
     parser.add_argument('--num_visuals',
                         type=int,
                         default=10,

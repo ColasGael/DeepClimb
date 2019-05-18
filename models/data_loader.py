@@ -104,7 +104,7 @@ class ClimbImageDataset(Dataset):
     
     Attributes:
         'filenames' (list of String): filenames of the dataset's examples
-        'labels' (list of int): corresponding examples' labels
+        'y' (list of int): corresponding examples' labels
         'transform' (torchvision.transforms): transformation to apply on image
     """
     
@@ -140,7 +140,7 @@ class ClimbImageDataset(Dataset):
             self.filenames = self.filenames[:n_dev]
         
         # get the class label: filename = '<label>_<split>_<example_nb>.jpg'
-        self.labels = [int(os.path.split(filename)[-1].split('_')[0]) for filename in self.filenames]
+        self.y = [int(os.path.split(filename)[-1].split('_')[0]) for filename in self.filenames]
         
         self.transform = transform
 
@@ -162,7 +162,7 @@ class ClimbImageDataset(Dataset):
         image = Image.open(self.filenames[idx])  # PIL image
         image = self.transform(image)
         
-        return image, self.labels[idx]
+        return image, self.y[idx]
 
 
 def fetch_dataloader(splits, params):

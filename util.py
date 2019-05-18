@@ -17,6 +17,34 @@ import numpy as np
 import ujson as json
 
 
+class AverageMeter:
+    """Keep track of average values over time.
+
+    Adapted from:
+        > https://github.com/pytorch/examples/blob/master/imagenet/main.py
+    """
+    def __init__(self):
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def reset(self):
+        """Reset meter."""
+        self.__init__()
+
+    def update(self, val, num_samples=1):
+        """Update meter with new value `val`, the average of `num` samples.
+
+        Args:
+            val (float): Average value to update the meter with.
+            num_samples (int): Number of samples that were averaged to
+                produce `val`.
+        """
+        self.count += num_samples
+        self.sum += val * num_samples
+        self.avg = self.sum / self.count
+
+        
 class CheckpointSaver:
     """Class to save and load model checkpoints.
 
@@ -159,14 +187,15 @@ def get_available_devices():
 
     return device, gpu_ids
 
-
+# TODO
 def visualize(tbx, pred_dict, eval_path, step, split, num_visuals):
     """Visualize text examples to TensorBoard.
 
     Args:
         tbx (tensorboardX.SummaryWriter): Summary writer.
-        pred_dict (dict): dict of predictions of the form id -> pred.
-        eval_path (str): Path to eval JSON file.
+        y_pred (dict): dict of predictions of the form id -> pred.
+        y_true (str): Path to eval JSON file.
+        filenames (list of str): List of image examples' filenames
         step (int): Number of examples seen so far during training.
         split (str): Name of data split being visualized.
         num_visuals (int): Number of visuals to select at random from preds.
@@ -196,7 +225,7 @@ def visualize(tbx, pred_dict, eval_path, step, split, num_visuals):
                      text_string=tbl_fmt.format(question, context, gold, pred),
                      global_step=step)
 
-
+# TODO
 def save_preds(preds, save_dir, file_name='predictions.csv'):
     """Save predictions `preds` to a CSV file named `file_name` in `save_dir`.
 
@@ -224,6 +253,59 @@ def save_preds(preds, save_dir, file_name='predictions.csv'):
     return save_path
 
 
+def evaluate_preds(y_true, y_pred):
+    """Evaluate the predicted classes from the model with the true classes.
+    Return a dictionary listing the metrics' values.
+    
+    Args:
+        'y_true' (list of int): list of true class labels
+        'y_pred' (list of int): list of predicted class labels
+    
+    Return:
+        'results' (dict): dictionary listing the metrics' values
+        
+    Remark:
+        Implemented metrics: Accuracy, macro F1-score, Mean Absolute Error (MAE)
+    """
+    def accuracy(y_true, y_pred):
+        n_examples = y_true.size
+        n_correct = np.sum(y_true == y_pred)
+        accuracy = n_correct / n_examples
+        return accuracy
+    
+    def MAE(y_true, y_pred):
+        n_examples = y_true.size
+        diff = np.abs(y_true - y_pred)
+        MAE = diff/n_examples
+        return MAE
+    
+    def F1(y_true, y_pred, weights={}):
+        F1s = {}
+        
+        # compute F1-score per class
+        for c in set(y_true):
+            # class mask
+            mask = y_true == c
+            mask_pred = y_pred == c
+            # compute class F1-score
+            recall = np.sum(y_pred[mask] == c)/np.sum(mask)
+            precision = np.sum(y_pred[mask] == c)/np.sum(mask_pred)
+            
+            if (recall == 0) or (precision == 0):
+                F1s[c] = 0
+            else:
+                F1s[c] = 2*(recall*precision)/(recall + precision)
+        
+        F1 = np.sum([weights.get(c, 1/len(F1s))*F1 for c, F1 in F1s.items()])
+        return F1
+    
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+    
+    results = {'Acc': accuracy(y_true, y_pred), 'MAE': MAE(y_true, y_pred), 'F1': F1(y_true, y_pred)}
+    
+    return results
+   
 def get_save_dir(base_dir, name, training, id_max=100):
     """Get a unique save directory by appending the smallest positive integer
     `id < id_max` that is not already taken (i.e., no dir exists with that id).
