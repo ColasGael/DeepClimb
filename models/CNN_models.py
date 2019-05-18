@@ -65,7 +65,7 @@ class BinaryClimbCNN(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
         
-    def forward(x):
+    def forward(self, x):
         """Forward pass for a batch of examples.
         
         Args:
@@ -81,7 +81,7 @@ class BinaryClimbCNN(nn.Module):
         logits = self.network(x)        # (N, n_classes, 1, 1)
         
         # reshape to get the scores
-        logits = torch.squeeze(x)       # (N, n_classes)
+        logits = torch.squeeze(logits)       # (N, n_classes)
         
         return logits
 
@@ -104,16 +104,16 @@ class ImageClimbCNN(nn.Module):
         # convolutional blocks
         conv_blocks = []
         for k in range(n_conv_blocks):
-            conv_blocks.append(self._conv_block(n_channels_in, n_channels*2**(k//2))
+            conv_blocks.append(self._conv_block(n_channels_in, n_channels*2**(k//2)))
             n_channels_in = n_channels*2**(k//2)
         
         # average pooling
-        avgpool_block = self._conv_block(n_channels_in, n_channels_in, "avg")
+        avgpool_block = self._conv_block(n_channels_in, n_channels_in, pool_method="avg")
         
         # 1x1 final convolution
         conv1 = nn.Conv2d(n_channels_in, n_classes, (1,1), bias=True)
         
-        self.network = nn.Sequential(*conv_blocks, avgpool_bloc, conv1)
+        self.network = nn.Sequential(*conv_blocks, avgpool_block, conv1)
             
         # initialization
         for m in self.modules():
@@ -123,7 +123,7 @@ class ImageClimbCNN(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
         
-    def forward(x):
+    def forward(self, x):
         """Forward pass for a batch of examples.
         
         Args:
@@ -131,19 +131,16 @@ class ImageClimbCNN(nn.Module):
         
         Return:
             'logits' (torch.Tensor, shape=(N, n_classes)): batch of scores for each class
-        """
-        # create channel dimension
-        x = torch.unsqueeze(x, 1)       # (N, 3, 256, 384)
-        
+        """        
         # forward pass through the network
         logits = self.network(x)        # (N, n_classes, 1, 1)
         
         # reshape to get the scores
-        logits = torch.squeeze(x)       # (N, n_classes)
+        logits = torch.squeeze(logits)       # (N, n_classes)
         
         return logits
     
-    def _conv_block(n_channels_in, n_channels_out, filter_size=3, pool_method="max"):
+    def _conv_block(self, n_channels_in, n_channels_out, filter_size=3, pool_method="max"):
         padding = int((filter_size-1)/2)
     
         conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, W, H)

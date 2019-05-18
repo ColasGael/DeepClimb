@@ -10,6 +10,15 @@ To create the environment with all the necessary packages, go at the root of the
 To activate the environment: 
 `conda activate deepclimb`
 
+If you want to use Jupyter notebooks on the VM, you need to do this one time set-up.
+After you SSH into the VM for the first time, you need to run the following commands in your home directory:
+
+`cd DeepClimb/
+chmod +x ./setup.sh
+./setup.sh`
+
+You will be asked to set up a password for your Jupyter notebook.
+
 ### Scrap the data
 Folder: "data/raw"
 
@@ -40,3 +49,29 @@ The scrapped data is preprocessed into both the binary (.npy files) and the imag
 The same split is used for both representations.
 
 The split data can be found in "data/binary" and "data/image".
+
+## Train the models
+
+### Launching training
+
+Run: `python train.py --name <model_name>`
+
+You can either use one of the CNN models in "models/CNN_models", or create your custom model and add its name in "train.py" and "test.py".
+
+If you want to change the parameters of the training process, please see: "args.py".
+
+### Track progress on TensorBoard
+
+The training regularly send information to TensorBoard. To start TensorBoard, run the following command from the root directory:
+`tensorboard --logdir save --port 5678`
+
+If you are training on your local machine, now open http://localhost:5678/ in your browser. 
+
+If you are training on a remote machine (e.g. Azure), then run the following command on your local machine:
+`ssh -N -f -L localhost:1234:localhost:5678 <user>@<remote> 10`
+Here <user>@<remote> is the address that you ssh to for your remote machine. 
+Then on your local machine, open http://localhost:1234/ in your browser.
+    
+You should see TensorBoard load with plots of the loss (NLL), Accuracy (Acc), Mean Absolute Error (MAE), and F1-score (F1) for both train and dev sets. 
+
+The dev plots may take some time to appear because they are logged less frequently than the train plots. 

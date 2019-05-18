@@ -51,10 +51,10 @@ def get_setup_args():
                         type=float,
                         default=0.8,
                         help="Fraction of the dataset to put in the train-set")
-    parser.add_argument('--dev_split',
+    parser.add_argument('--val_split',
                         type=float,
                         default=0.1,
-                        help="Fraction of the dataset to put in the dev-set")    
+                        help="Fraction of the dataset to put in the val-set")    
     parser.add_argument('--test_split',
                         type=float,
                         default=0.1,
@@ -138,7 +138,7 @@ def get_test_args():
     add_common_args(parser)
     add_train_test_args(parser)
 
-    parser.add_argument('--split',
+    parser.add_argument('--test_split',
                         type=str,
                         default='val',
                         choices=('train', 'dev', 'val', 'test'),
@@ -181,6 +181,11 @@ def add_train_test_args(parser):
                         default='train',
                         choices=('train', 'dev'),
                         help='You can use the development set, small fraction of the train set, for debugging.')
+    parser.add_argument('--val_split',
+                        type=str,
+                        default='val',
+                        choices=('val', 'dev'),
+                        help='You can use the development set, small fraction of the train set, for debugging.')
     parser.add_argument('--num_visuals',
                         type=int,
                         default=10,
@@ -195,5 +200,5 @@ def add_train_test_args(parser):
 
     parser.add_argument('--use_image',
                 type=bool,
-                default="binary" in args.name.lower(),
+                default="image" in args.name.lower(),
                 help='Whether to use the image or the binary representation of examples.')   

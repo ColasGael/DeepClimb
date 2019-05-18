@@ -270,13 +270,13 @@ def evaluate_preds(y_true, y_pred):
     def accuracy(y_true, y_pred):
         n_examples = y_true.size
         n_correct = np.sum(y_true == y_pred)
-        accuracy = n_correct / n_examples
+        accuracy = n_correct / n_examples *100
         return accuracy
     
     def MAE(y_true, y_pred):
         n_examples = y_true.size
         diff = np.abs(y_true - y_pred)
-        MAE = diff/n_examples
+        MAE = np.sum(diff)/n_examples
         return MAE
     
     def F1(y_true, y_pred, weights={}):
@@ -296,7 +296,7 @@ def evaluate_preds(y_true, y_pred):
             else:
                 F1s[c] = 2*(recall*precision)/(recall + precision)
         
-        F1 = np.sum([weights.get(c, 1/len(F1s))*F1 for c, F1 in F1s.items()])
+        F1 = np.sum([weights.get(c, 1/len(F1s))*F1 for c, F1 in F1s.items()]) * 100
         return F1
     
     y_true = np.array(y_true)

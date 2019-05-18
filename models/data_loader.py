@@ -78,6 +78,7 @@ class ClimbBinaryDataset(Dataset):
             
         # reshape the examples in grid form
         self.X = np.reshape(self.X, (-1, GRID_DIMS))
+        print(self.X.shape, self.y.shape, self.y.size)
         
     def __len__(self):
         """Return the size of dataset = number of distinct examples.
@@ -134,8 +135,8 @@ class ClimbImageDataset(Dataset):
             
             # get list of files in the directory (filter only the .jpg files)
             self.filenames = self.filenames + [os.path.join(data_path, f) for f in os.listdir(data_path) if f.endswith('.jpg')]
-        
-        # crop the number of examples for the development set
+            
+        # clip the number of examples for the development set
         if split == "dev":
             self.filenames = self.filenames[:n_dev]
         
@@ -173,15 +174,17 @@ def fetch_dataloader(splits, params):
         'params' (Params): hyperparameters
         
     Returns:
-        'data' (dict): contains the DataLoader object for each type in types
+        'dataloaders' (dict: str -> DataLoader): DataLoader object for each split in splits
+        'dataloaders' (dict: str -> int): number of examples for each split in splits
     """
     dataloaders = {}
+    n_examples = {}
 
     # available MoonBoard versions
-    version = params.MB_versions
+    versions = params.MB_versions
     
     # get the paths to the data directories
-    if params.use_img: #whether to use the image or the binary representation of examples
+    if params.use_image: #whether to use the image or the binary representation of examples
         data_dir = params.image_data_dir
         data_paths = [os.path.join(data_dir, version) for version in versions] # use all the available versions
     else: 
@@ -199,17 +202,13 @@ def fetch_dataloader(splits, params):
                 transformer = eval_transformer
                 shuffle = False
             
-            if params.use_img:                
-                dl = DataLoader(ClimbImageDataset(data_paths, split, transformer, n_dev=3*params.batch_size), 
-                                batch_size=params.batch_size, 
-                                shuffle=shuffle,
-                                num_workers=params.num_workers)
+            if params.use_image: 
+                dataset = ClimbImageDataset(data_paths, split, transformer, n_dev=params.batch_size)
+                
             else:                
-                dl = DataLoader(ClimbBinaryDataset(data_path, split, n_dev=3*params.batch_size), 
-                                batch_size=params.batch_size, 
-                                shuffle=shuffle,
-                                num_workers=params.num_workers)
+                dataset = ClimbBinaryDataset(data_path, split, n_dev=params.batch_size)
+            
+            n_examples[split] = len(dataset)
+            dataloaders[split] = DataLoader(dataset, batch_size=params.batch_size, shuffle=shuffle, num_workers=params.num_workers)
 
-            dataloaders[split] = dl
-
-    return dataloaders
+    return dataloaders, n_examples

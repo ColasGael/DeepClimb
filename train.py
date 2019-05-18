@@ -83,17 +83,17 @@ def main(args):
 
     # Get data loader
     log.info('Building dataset...')
-    data_loaders = fetch_dataloader([args.train_split, 'val'], args)
+    data_loaders, n_examples = fetch_dataloader([args.train_split, args.val_split], args)
     train_loader = data_loaders[args.train_split]
-    val_loader = data_loaders['val']
-
+    val_loader = data_loaders[args.val_split]
+    
     # Train
-    log.info('Training...')
+    log.info('Training on {}-set composed of {} examples...'.format(args.train_split, n_examples[args.train_split]))
     epochs_till_eval = args.eval_epochs
-    epoch = step // len(train_dataset)
+    epoch = step // n_examples[args.train_split]
     while epoch < args.num_epochs:
         epoch += 1
-        log.info('Starting epoch {}...'.format(epoch))
+        log.info('Starting epoch {} on {}-set...'.format(epoch, args.train_split))
         with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as progress_bar:
             for x, y in train_loader: # get batch
                 # Setup for forward
@@ -131,7 +131,7 @@ def main(args):
             epochs_till_eval = args.eval_epochs
 
             # Evaluate and save checkpoint
-            log.info('Evaluating at epoch {}...'.format(epoch))
+            log.info('Evaluating on {}-set at epoch {}...'.format(args.val_split, epoch))
             results, y_pred = evaluate(model, val_loader, device,
                                           args.name,
                                           args.gpu_ids)
@@ -159,7 +159,7 @@ def evaluate(model, data_loader, device, model_name, gpu_ids):
     y_pred = []
 
     with torch.no_grad(), tqdm(total=len(data_loader.dataset)) as progress_bar:
-        for x, y in train_loader: # get batch
+        for x, y in data_loader: # get batch
             # Setup for forward
             x = x.to(device)
 
@@ -187,13 +187,13 @@ def evaluate(model, data_loader, device, model_name, gpu_ids):
     # put back in train mode
     model.train()
 
-    results = util.eval_preds(y_true, y_pred)
+    results = util.evaluate_preds(y_true, y_pred)
     results_list = [('NLL', nll_meter.avg),
                     ('Acc', results['Acc']),
                     ('F1', results['F1']),
                     ('MAE', results['MAE'])]
 
-    results = OrderedDict(results_list)
+    results = dict(results_list)
 
     return results, y_pred
 

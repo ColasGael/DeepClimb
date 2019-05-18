@@ -1,7 +1,7 @@
 """Test a model and generate prediction CSV.
 
 Usage:
-    > python test.py --split SPLIT --load_path PATH --name NAME
+    > python test.py --test_split SPLIT --load_path PATH --name NAME
     where
     > SPLIT is either "val" or "test"
     > PATH is a path to a checkpoint (e.g., save/train/model-01/best.pth.tar)
@@ -26,7 +26,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 from tensorboardX import SummaryWriter
 
-from models.data_loader import data_loader
+from models.data_loader import fetch_dataloader
 from models.CNN_models import BinaryClimbCNN, ImageClimbCNN
     
 
@@ -67,11 +67,11 @@ def main(args):
 
     # Get data loader
     log.info('Building dataset...')
-    data_loaders = fetch_dataloaders([args.split], args)
-    data_loader = data_loaders[args.split]
+    data_loaders = fetch_dataloader([args.test_split], args)
+    data_loader = data_loaders[args.test_split]
 
     # Evaluate
-    log.info('Evaluating on {} split...'.format(args.split))
+    log.info('Evaluating on {} split...'.format(args.test_split))
     
     # NLL average
     nll_meter = util.AverageMeter()
@@ -104,25 +104,25 @@ def main(args):
             progress_bar.update(batch_size)
             progress_bar.set_postfix(NLL=nll_meter.avg)
 
-    results = util.eval_preds(y_true, y_pred)
+    results = util.evaluate_preds(y_true, y_pred)
     results_list = [('NLL', nll_meter.avg),
                     ('Acc', results['Acc']),
                     ('F1', results['F1']),
                     ('MAE', results['MAE'])]
 
-    results = OrderedDict(results_list)
+    results = dict(results_list)
 
     # Log to console
     results_str = ', '.join('{}: {:05.2f}'.format(k, v)
                             for k, v in results.items())
-    log.info('{} {}'.format(args.split.title(), results_str))
+    log.info('{} {}'.format(args.test_split.title(), results_str))
 
     # Log to TensorBoard
     tbx = SummaryWriter(args.save_dir)
     #util.visualize(tbx, pred_dict=pred_dict, step=step, split='val', num_visuals=args.num_visuals)
 
     # Write prediction file
-    sub_path = join(args.save_dir, args.split + '_' + args.pred_file)
+    sub_path = join(args.save_dir, args.test_split + '_' + args.pred_file)
     log.info('Writing submission file to {}...'.format(sub_path))
     with open(sub_path, 'w', newline='', encoding='utf-8') as csv_fh:
         csv_writer = csv.writer(csv_fh, delimiter=',')
