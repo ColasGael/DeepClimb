@@ -21,7 +21,7 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as sched
 from tensorboardX import SummaryWriter
 
-from models.data_loader import data_loader
+from models.data_loader import fetch_dataloader
 from models.CNN_models import BinaryClimbCNN, ImageClimbCNN
 
 def main(args):
@@ -83,7 +83,7 @@ def main(args):
 
     # Get data loader
     log.info('Building dataset...')
-    data_loaders = fetch_dataloaders([args.train_split, 'val'], args)
+    data_loaders = fetch_dataloader([args.train_split, 'val'], args)
     train_loader = data_loaders[args.train_split]
     val_loader = data_loaders['val']
 

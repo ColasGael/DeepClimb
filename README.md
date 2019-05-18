@@ -28,4 +28,15 @@ Selenium [documentation](https://selenium-python.readthedocs.io/locating-element
 
 ### Preprocess the data
 
- Run: `python setup.py`
+Run: `python setup.py`
+
+It will preprocess and split the scraped data files, for each version of the MoonBoard individually (2016 and 2017).
+
+The script splits the dataset into train/validation/test in the proportion 80%/20%/20%.
+The split is random but preserve the class distribution in each split.
+The seed used in the split is fixed to give the same split at every run.  
+
+The scrapped data is preprocessed into both the binary (.npy files) and the image (.jpg files) representation of the routes.
+The same split is used for both representations.
+
+The split data can be found in "data/binary" and "data/image".
