@@ -1,7 +1,8 @@
 """Train a model.
 
 Authors:
-    Chris Chute (chute@stanford.edu)
+    Chris Chute (CS224n teaching staff)
+        starter code from: https://github.com/chrischute/squad
     Gael Colas
 """
 

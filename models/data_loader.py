@@ -12,8 +12,9 @@ Transformation: resize to (H, W) = (384, 256)
 Data augmentation: flip left-right
 
 Authors:
+    Surag Nair (CS230 teaching staff)
+        starter code from: https://github.com/cs230-stanford/cs230-code-examples/blob/master/pytorch/vision/model/data_loader.py
     Gael Colas
-    CS230 class at Stanford: starter code from: https://github.com/cs230-stanford/cs230-code-examples/blob/master/pytorch/vision/model/data_loader.py
 """
 
 import random

@@ -1,3 +1,11 @@
+"""Configuration file for Jupyter notebooks: 
+    - Allow to remotely connect to Jupyter, on your local machine go to: <vm-ip-address>:8888
+    - Set up a password.
+
+Authors:
+    Jim Fan (CS231n teaching staff): https://github.com/cs231n/gcloud/
+"""
+
 # Configuration file for jupyter-notebook.
 
 ## Set the Access-Control-Allow-Origin header

@@ -8,7 +8,8 @@ Usage:
     > NAME is a name to identify the test run
 
 Authors:
-    Chris Chute (chute@stanford.edu)
+    Chris Chute (CS224n teaching staff)
+        starter code from: https://github.com/chrischute/squad
     Gael Colas
 """
 

@@ -1,7 +1,8 @@
 """Command-line arguments for setup.py, train.py, test.py.
 
 Authors:
-    Chris Chute:  provided starter code
+    Chris Chute (CS224n teaching staff)
+        starter code from: https://github.com/chrischute/squad
     Gael Colas
 """
 

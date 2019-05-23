@@ -1,3 +1,9 @@
+"""Check that CUDA is correctly installed for PyTorch and display the available GPUs.
+
+Authors:
+    Jim Fan (CS231n teaching staff): https://github.com/cs231n/gcloud/
+"""
+
 import os
 import torch
 

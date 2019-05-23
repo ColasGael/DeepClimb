@@ -1,4 +1,4 @@
-"""Build and preprocess the datasets from the scraped files and Download the models' pre-trained weights
+"""Build and preprocess the datasets from the scraped files and Download the models' pre-trained weights.
 
 Usage:
     Do once:

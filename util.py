@@ -1,7 +1,7 @@
 """Utility classes and methods.
 
 Author:
-    Chris Chute (chute@stanford.edu)
+    Chris Chute (CS224n teaching staff): https://github.com/chrischute/squad
 """
 
 import logging
