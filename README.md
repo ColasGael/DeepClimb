@@ -21,7 +21,9 @@ chmod +x ./setup.sh
 
 You will be asked to set up a password for your Jupyter notebook.
 
-Then you will be able to access your VM Jupyter notebooks from your local machine. In your browser, go to: `<VM-ip-address>:8888`.
+Then you will be able to access your VM Jupyter notebooks from your local machine. In your browser, go to: 
+
+`<VM-ip-address>:8888`
 
 ### Scrap the data
 Folder: "data/raw"
