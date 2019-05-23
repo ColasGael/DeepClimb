@@ -10,7 +10,7 @@ To create the environment with all the necessary packages, go at the root of the
 To activate the environment: 
 `conda activate deepclimb`
 
-If you want to use Jupyter notebooks on the VM, you need to do this one time set-up.
+If you want to use Jupyter notebooks on a remote machine (VM), you need to do this one time set-up.
 After you SSH into the VM for the first time, you need to run the following commands in your home directory:
 
 ```
@@ -20,6 +20,8 @@ chmod +x ./setup.sh
 ```
 
 You will be asked to set up a password for your Jupyter notebook.
+
+Then you will be able to access your VM Jupyter notebooks from your local machine. In your browser, go to: `<VM-ip-address>:8888`.
 
 ### Scrap the data
 Folder: "data/raw"
@@ -69,7 +71,7 @@ The training regularly send information to TensorBoard. To start TensorBoard, ru
 
 If you are training on your local machine, now open http://localhost:5678/ in your browser. 
 
-If you are training on a remote machine (e.g. Azure), then run the following command on your local machine:
+If you are training on a remote machine, then run the following command on your local machine:
 
 `ssh -N -f -L localhost:1234:localhost:5678 <user>@<remote> 10`
 
