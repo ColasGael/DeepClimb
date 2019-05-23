@@ -13,9 +13,11 @@ To activate the environment:
 If you want to use Jupyter notebooks on the VM, you need to do this one time set-up.
 After you SSH into the VM for the first time, you need to run the following commands in your home directory:
 
-`cd DeepClimb/
+```
+cd DeepClimb/
 chmod +x ./setup.sh
-./setup.sh`
+./setup.sh
+```
 
 You will be asked to set up a password for your Jupyter notebook.
 
@@ -68,8 +70,11 @@ The training regularly send information to TensorBoard. To start TensorBoard, ru
 If you are training on your local machine, now open http://localhost:5678/ in your browser. 
 
 If you are training on a remote machine (e.g. Azure), then run the following command on your local machine:
+
 `ssh -N -f -L localhost:1234:localhost:5678 <user>@<remote> 10`
-Here <user>@<remote> is the address that you ssh to for your remote machine. 
+
+Here \<user>@\<remote> is the address that you ssh to for your remote machine. 
+
 Then on your local machine, open http://localhost:1234/ in your browser.
     
 You should see TensorBoard load with plots of the loss (NLL), Accuracy (Acc), Mean Absolute Error (MAE), and F1-score (F1) for both train and dev sets. 
