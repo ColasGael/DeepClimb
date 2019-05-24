@@ -26,7 +26,7 @@ if __name__ == '__main__':
     dataset_split.main(args.binary_data_dir, args.MB_versions, args.data_filenames, split_dict)
     
     # convert the binary representation into an image representation
-    image_preprocess.main(args.scraped_data_dir, args.binary_data_dir, args.image_data_dir, list(split_dict.keys()), args.MB_versions)
+    image_preprocess.main(args.scraped_data_dir, args.binary_data_dir, args.image_data_dir, list(split_dict.keys()), args.MB_versions, args.compute_img_stats)
     
     # download the models' pre-trained weights
     #download(args_)

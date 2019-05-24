@@ -50,7 +50,7 @@ def main(args):
     log.info('Building model {}...'.format(args.name))
 
     if args.name == 'BinaryClimbCNN':
-        model = ImageClimbCNN(n_classes) 
+        model = BinaryClimbCNN(n_classes) 
     elif args.name == 'ImageClimbCNN':
         model = ImageClimbCNN(n_classes)
     else:
@@ -89,8 +89,6 @@ def main(args):
 
             # Forward
             logits = model(x)
-
-            y = y.to(device)
 
             # cross-entropy from logits loss
             y = y.to(device)

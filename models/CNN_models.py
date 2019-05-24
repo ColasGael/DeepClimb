@@ -96,7 +96,7 @@ class ImageClimbCNN(nn.Module):
         Image matrix shape: (C, W, H) = (3, 256, 384)
     """
     
-    def __init__(self, n_classes, n_channels=7, n_conv_blocks=8):
+    def __init__(self, n_classes, n_channels=8, n_conv_blocks=8):
         super(ImageClimbCNN, self).__init__()
         
         n_channels_in = 3
@@ -104,8 +104,9 @@ class ImageClimbCNN(nn.Module):
         # convolutional blocks
         conv_blocks = []
         for k in range(n_conv_blocks):
-            conv_blocks.append(self._conv_block(n_channels_in, n_channels*2**(k//2)))
-            n_channels_in = n_channels*2**(k//2)
+            n_channels_out = n_channels*2**(k//2)
+            conv_blocks.append(self._conv_block(n_channels_in, n_channels_out))
+            n_channels_in = n_channels_out
         
         # average pooling
         avgpool_block = self._conv_block(n_channels_in, n_channels_in, pool_method="avg")
@@ -136,7 +137,7 @@ class ImageClimbCNN(nn.Module):
         logits = self.network(x)        # (N, n_classes, 1, 1)
         
         # reshape to get the scores
-        logits = torch.squeeze(logits)       # (N, n_classes)
+        logits = torch.squeeze(logits)  # (N, n_classes)
         
         return logits
     
@@ -144,7 +145,7 @@ class ImageClimbCNN(nn.Module):
         padding = int((filter_size-1)/2)
     
         conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, W, H)
-        bn = nn.BatchNorm2d(n_channels_out)                                                                 # (N, n_channels_out, W, H)
+        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=1.)                                       # (N, n_channels_out, W, H)
         relu = nn.ReLU()                                                                                    # (N, n_channels_out, W, H)
         
         if pool_method == "max":
@@ -153,7 +154,8 @@ class ImageClimbCNN(nn.Module):
             pool = nn.AvgPool2d((2,3))                                                                      # (N, n_channels_out, 1, 1)
         
         conv_block = nn.Sequential(conv, bn, relu, pool)
-        
+        #conv_block = nn.Sequential(conv, relu, pool)
+
         return conv_block
         
         

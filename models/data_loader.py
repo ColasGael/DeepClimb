@@ -29,18 +29,28 @@ import torchvision.transforms as transforms
 # MoonBoard grid properties
 GRID_DIMS = (18, 11) # dimensions
 
+# load the blank template of the MoonBoard wall as a numpy array
+rawDirName = "data/raw"
+MBversion = 2016
+template_im = Image.open(os.path.join(rawDirName, "{}_moonboard_empty.png".format(MBversion))).convert('RGB').getdata()                    
+# compute the pixels statistics
+MEAN_PIX = np.mean(template_im, axis=0)
+STD_PIX = np.std(template_im, axis=0)    
+
 # TRAIN image transformation pipeline 
 train_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
     transforms.RandomHorizontalFlip(),                              # randomly flip image horizontally
-    transforms.ToTensor()])                                         # transform it into a torch tensor
+    transforms.ToTensor(),                                          # transform it into a torch tensor
+    transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
 
 # EVAL image transformation pipeline (no horizontal flip)
 eval_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
-    transforms.ToTensor()])                                         # transform it into a torch tensor
+    transforms.ToTensor(),                                          # transform it into a torch tensor
+    transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
 
     
 class ClimbBinaryDataset(Dataset):
@@ -193,16 +203,19 @@ def fetch_dataloader(splits, params):
         data_path = os.path.join(data_dir, versions[0]) # only use one version dataset
     
     for split in ['train', 'dev', 'val', 'test']:
-        if split in splits:
+        if split in set(splits):
         
             # use the train_transformer if training data, else use eval_transformer without random flip
-            if (split == 'train') or (split == 'dev'):
+            if (split == 'train'):
                 transformer = train_transformer
+                shuffle = True
+            elif (split == 'dev'):
+                transformer = eval_transformer
                 shuffle = True
             else:
                 transformer = eval_transformer
                 shuffle = False
-            
+                
             if params.use_image: 
                 dataset = ClimbImageDataset(data_paths, split, transformer, n_dev=params.batch_size)
                 

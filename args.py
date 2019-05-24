@@ -60,6 +60,10 @@ def get_setup_args():
                         type=float,
                         default=0.1,
                         help="Fraction of the dataset to put in the test-set")
+    parser.add_argument('--compute_img_stats',
+                        type=bool,
+                        default=False,
+                        help="Whether to compute the train images statistics per version: mean and std images")
     # TODO: add url of pretrained models' weights
 
     args = parser.parse_args()
@@ -76,7 +80,7 @@ def get_train_args():
     
     parser.add_argument('--eval_epochs',
                         type=int,
-                        default=3,
+                        default=1,
                         help='Number of epochs between successive evaluations.')
     parser.add_argument('--lr',
                         type=float,
@@ -118,8 +122,11 @@ def get_train_args():
                         default=0.999,
                         help='Decay rate for exponential moving average of parameters.')
 
-    args = parser.parse_args()
-
+    # Check which dataset to use: image or binary representation of examples
+    args = parser.parse_args()    
+    args.use_image = args.use_image or ("image" in args.name.lower())
+    
+    # Check best metric evolution direction
     if args.metric_name in ('Acc', 'F1'):
         # Best checkpoint is the one that maximizes Accuracy or F1-score
         args.maximize_metric = True
@@ -149,8 +156,11 @@ def get_test_args():
                         default='predictions.csv',
                         help='Name for prediction file.')
 
+    # Check which dataset to use: image or binary representation of examples
+    args = parser.parse_args()    
+    args.use_image = args.use_image or ("image" in args.name.lower())
+    
     # Require load_path for test.py
-    args = parser.parse_args()
     if not args.load_path:
         raise argparse.ArgumentError('Missing required argument --load_path')
 
@@ -194,12 +204,8 @@ def add_train_test_args(parser):
     parser.add_argument('--load_path',
                         type=str,
                         default=None,
-                        help='Path to load as a model checkpoint.')                 
-    
-    # Check which dataset to use
-    args = parser.parse_args()
-
+                        help='Path to load as a model checkpoint.')         
     parser.add_argument('--use_image',
-                type=bool,
-                default="image" in args.name.lower(),
-                help='Whether to use the image or the binary representation of examples.')   
+                    type=bool,
+                    default=True,
+                    help='Whether to use the image or the binary representation of examples.')

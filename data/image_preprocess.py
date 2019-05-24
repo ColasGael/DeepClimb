@@ -149,7 +149,7 @@ def binary2image(x_binary, x_type, template_im):
     
     return x_im
     
-def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
+def main(rawDirName, binDirName, imDirName, splits, VERSIONS, compute_img_stats):
     print("\n IMAGE PREPROCESSING\n")
 
     try:
@@ -158,7 +158,7 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
         print("Directory '{}' created.".format(imDirName))
     except FileExistsError:
         print("Directory '{}' already exists.".format(imDirName))
-
+        
     for MBversion in VERSIONS:
         MBversion = str(MBversion)
         print("{:-^100}".format("---Image Preprocessing for MoonBoard version {}---".format(MBversion)))
@@ -181,6 +181,9 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
         except FileExistsError:
             print("Directory '{}' already exists.".format(path_out))
             
+        # store the train images
+        train_imgs = []
+            
         for split_name in splits:
             # load the binary data
             X = np.load(os.path.join(path_in, "X_{}.npy".format(split_name)))
@@ -197,6 +200,7 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
                 print("Directory '{}' already exists.".format(splitDirName))
             
             print("Preprocessing the binary {} data into artificial images...".format(split_name))
+            
             # loop over the examples
             for k in trange(X.shape[0]):
                 # binary matrix representation of the example
@@ -209,8 +213,19 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS):
                 # save the image: "<label>_<split>_<example_nb>.png"
                 im_name = "{}_{}_{}.jpg".format(y[k], split_name, k)
                 
+                if compute_img_stats and (split_name == "train"):
+                    # store the images
+                    train_imgs.append(np.array(x_im.getdata()))
+                
                 # save the image
                 x_im.save(os.path.join(splitDirName, im_name), "JPEG")
+          
+        # compute and save the train set statistics: mean and std images per version
+        if compute_img_stats:
+            mean_img = np.mean(train_imgs, axis=0)
+            std_img = np.std(train_imgs, axis=0)
+            np.save(os.path.join(imDirName, "mean_train_img_{}".format(MBversion)), mean_img)
+            np.save(os.path.join(imDirName, "std_train_img_{}".format(MBversion)), std_img)
             
 if __name__ == "__main__":
     # versions of the MoonBoard handled
@@ -224,5 +239,8 @@ if __name__ == "__main__":
     # splits to preprocess
     splits = ("train", "val", "test")
     
-    main(rawDirName, binDirName, imDirName, splits, VERSIONS)
+    # whether to compute the train images statistics: mean and std
+    compute_img_stats = True
+    
+    main(rawDirName, binDirName, imDirName, splits, VERSIONS, compute_img_stats)
             

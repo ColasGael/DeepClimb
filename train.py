@@ -52,7 +52,7 @@ def main(args):
     log.info('Building model {}...'.format(args.name))
 
     if args.name == 'BinaryClimbCNN':
-        model = ImageClimbCNN(n_classes) 
+        model = BinaryClimbCNN(n_classes) 
     elif args.name == 'ImageClimbCNN':
         model = ImageClimbCNN(n_classes)
     else:
@@ -126,7 +126,7 @@ def main(args):
                 tbx.add_scalar('train/LR',
                                optimizer.param_groups[0]['lr'],
                                step)
-
+        
         epochs_till_eval -= 1
         if epochs_till_eval <= 0:
             epochs_till_eval = args.eval_epochs
@@ -160,7 +160,7 @@ def evaluate(model, data_loader, device, model_name, gpu_ids):
     y_pred = []
 
     with torch.no_grad(), tqdm(total=len(data_loader.dataset)) as progress_bar:
-        for x, y in data_loader: # get batch
+        for x, y in data_loader: # get batch           
             # Setup for forward
             x = x.to(device)
 
@@ -168,8 +168,6 @@ def evaluate(model, data_loader, device, model_name, gpu_ids):
 
             # Forward
             logits = model(x)
-
-            y = y.to(device)
 
             # cross-entropy from logits loss
             y = y.to(device)
