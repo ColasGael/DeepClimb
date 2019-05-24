@@ -75,7 +75,7 @@ If you are training on your local machine, now open http://localhost:5678/ in yo
 
 If you are training on a remote machine, then run the following command on your local machine:
 
-`ssh -N -f -L localhost:1234:localhost:5678 <user>@<remote> 10`
+`ssh -i <path-to-ssh-private-key> -N -f -L localhost:1234:localhost:5678 <user>@<remote> 10`
 
 Here \<user>@\<remote> is the address that you ssh to for your remote machine. 
 
