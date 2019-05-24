@@ -42,15 +42,15 @@ train_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
     transforms.RandomHorizontalFlip(),                              # randomly flip image horizontally
-    transforms.ToTensor(),                                          # transform it into a torch tensor
-    transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
+    transforms.ToTensor()])                                          # transform it into a torch tensor
+    #transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
 
 # EVAL image transformation pipeline (no horizontal flip)
 eval_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
-    transforms.ToTensor(),                                          # transform it into a torch tensor
-    transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
+    transforms.ToTensor()])                                          # transform it into a torch tensor
+    #transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
 
     
 class ClimbBinaryDataset(Dataset):

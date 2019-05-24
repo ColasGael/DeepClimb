@@ -23,7 +23,9 @@ import torch.optim.lr_scheduler as sched
 from tensorboardX import SummaryWriter
 
 from models.data_loader import fetch_dataloader
-from models.CNN_models import BinaryClimbCNN, ImageClimbCNN
+from models.CNN_models import BinaryClimbCNN, ImageClimbCNN, ImageClimbSmallCNN
+
+from PIL import Image
 
 def main(args):
     # Set up logging and devices
@@ -55,6 +57,8 @@ def main(args):
         model = BinaryClimbCNN(n_classes) 
     elif 'ImageClimbCNN' in args.name:
         model = ImageClimbCNN(n_classes)
+    elif 'ImageClimbSmallCNN' in args.name:
+        model = ImageClimbSmallCNN(n_classes)
     else:
         raise NameError('No model named ' + args.name)
     
@@ -97,6 +101,9 @@ def main(args):
         log.info('Starting epoch {} on {}-set...'.format(epoch, args.train_split))
         with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as progress_bar:
             for x, y in train_loader: # get batch
+                new_im = Image.fromarray(np.moveaxis(np.array(x[0].tolist()), 0, -1), 'RGB')
+                new_im.save("test.jpg")
+                
                 # Setup for forward
                 x = x.to(device)
 
@@ -105,7 +112,7 @@ def main(args):
 
                 # Forward
                 logits = model(x)
-
+                
                 # cross-entropy from logits loss
                 y = y.to(device)
                 loss = F.cross_entropy(logits, y, weight=None, reduction='mean')

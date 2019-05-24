@@ -93,7 +93,7 @@ class ImageClimbCNN(nn.Module):
         [CONV3-n_channels*(2^(k//2)) - BN - ReLU - MaxPool2]*n_conv_blocks - [CONV3-n_channels*16 - BN - ReLU - AvgPool(2,3)] - [CONV1-n_classes]
     
     Remark:
-        Image matrix shape: (C, W, H) = (3, 256, 384)
+        Image matrix shape: (C, H, W) = (3, 384, 256)
     """
     
     def __init__(self, n_classes, n_channels=8, n_conv_blocks=8):
@@ -118,6 +118,7 @@ class ImageClimbCNN(nn.Module):
             
         # initialization
         for m in self.modules():
+            print(m)
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, (nn.BatchNorm2d)):
@@ -128,7 +129,7 @@ class ImageClimbCNN(nn.Module):
         """Forward pass for a batch of examples.
         
         Args:
-            'x' (torch.Tensor, shape=(N, 3, 256, 384), dtype=torch.int64): batch of N examples represented as binary matrices
+            'x' (torch.Tensor, shape=(N, 3, 384, 256), dtype=torch.int64): batch of N examples represented as binary matrices
         
         Return:
             'logits' (torch.Tensor, shape=(N, n_classes)): batch of scores for each class
@@ -144,14 +145,14 @@ class ImageClimbCNN(nn.Module):
     def _conv_block(self, n_channels_in, n_channels_out, filter_size=3, pool_method="max"):
         padding = int((filter_size-1)/2)
     
-        conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, W, H)
-        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=1.)                                       # (N, n_channels_out, W, H)
-        relu = nn.ReLU()                                                                                    # (N, n_channels_out, W, H)
+        conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, H, W)
+        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=1.)                          # (N, n_channels_out, H, W)
+        relu = nn.ReLU()                                                                                    # (N, n_channels_out, H, W)
         
         if pool_method == "max":
-            pool = nn.MaxPool2d(2)                                                                          # (N, n_channels_out, W/2, H/2)
+            pool = nn.MaxPool2d(2)                                                                          # (N, n_channels_out, H/2, W/2)
         elif pool_method == "avg":
-            pool = nn.AvgPool2d((2,3))                                                                      # (N, n_channels_out, 1, 1)
+            pool = nn.AvgPool2d((3,2))                                                                      # (N, n_channels_out, 1, 1)
         
         conv_block = nn.Sequential(conv, bn, relu, pool)
         #conv_block = nn.Sequential(conv, relu, pool)
@@ -159,3 +160,66 @@ class ImageClimbCNN(nn.Module):
         return conv_block
         
         
+class ImageClimbSmallCNN(nn.Module):
+    """CNN architecture to predict the grade class from the image representation of examples.
+    
+    Architecture: 
+        TODO
+    
+    Remark:
+        Image matrix shape: (C, W, H) = (3, 384, 256)
+    """
+    
+    def __init__(self, n_classes, n_channels=8):
+        super(ImageClimbSmallCNN, self).__init__()
+        
+        n_channels_in = 3
+        
+        self.network = nn.Sequential(
+            self._conv_block(n_channels_in, n_channels, filter_size=6, stride=2, use_bn=False),         # shape (N, n_channels, 95, 63)
+            self._conv_block(n_channels, 2*n_channels, filter_size=5, stride=2),                        # shape (N, 2*n_channels, 23, 15)
+            self._conv_block(2*n_channels, 4*n_channels, filter_size=3, stride=2, pool_method="avg"),   # shape (N, 4*n_channels, 1, 1)
+            nn.Conv2d(4*n_channels, n_classes, 1, bias=True))
+            
+        # initialization
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+        
+    def forward(self, x):
+        """Forward pass for a batch of examples.
+        
+        Args:
+            'x' (torch.Tensor, shape=(N, 3, 384, 256), dtype=torch.int64): batch of N examples represented as binary matrices
+        
+        Return:
+            'logits' (torch.Tensor, shape=(N, n_classes)): batch of scores for each class
+        """        
+        # forward pass through the network
+        logits = self.network(x)        # (N, n_classes, 1, 1)
+        
+        # reshape to get the scores
+        logits = torch.squeeze(logits)  # (N, n_classes)
+        
+        return logits
+    
+    def _conv_block(self, n_channels_in, n_channels_out, filter_size=3, stride=1, padding=0, pool_method="max", use_bn=True):
+        
+        conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, stride=stride, bias=True) # (N, n_channels_out, H, W)
+        relu = nn.ReLU()                                                                                    # (N, n_channels_out, H, W)
+        
+        if pool_method == "max":
+            pool = nn.MaxPool2d(2)                                                                          # (N, n_channels_out, H/2, W/2)
+        elif pool_method == "avg":
+            pool = nn.AvgPool2d((15,5))                                                                     # (N, n_channels_out, 1, 1)
+        
+        if use_bn:
+            bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=0.1)                     # (N, n_channels_out, H, W)
+            conv_block = nn.Sequential(conv, bn, relu, pool)
+        else:
+            conv_block = nn.Sequential(conv, relu, pool)
+
+        return conv_block        

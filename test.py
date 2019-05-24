@@ -28,7 +28,7 @@ import torch.utils.data as data
 from tensorboardX import SummaryWriter
 
 from models.data_loader import fetch_dataloader
-from models.CNN_models import BinaryClimbCNN, ImageClimbCNN
+from models.CNN_models import BinaryClimbCNN, ImageClimbCNN, ImageClimbSmallCNN
     
 
 def main(args):
@@ -53,6 +53,8 @@ def main(args):
         model = BinaryClimbCNN(n_classes) 
     elif 'ImageClimbCNN' in args.name:
         model = ImageClimbCNN(n_classes)
+    elif 'ImageClimbSmallCNN' in args.name:
+        model = ImageClimbSmallCNN(n_classes)
     else:
         raise NameError('No model named ' + args.name)
     
