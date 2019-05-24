@@ -181,8 +181,10 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS, compute_img_stats)
         except FileExistsError:
             print("Directory '{}' already exists.".format(path_out))
             
-        # store the train images
-        train_imgs = []
+        # sum the train images
+        mean_img = 0
+        mean_img2 = 0
+        n_train = 0
             
         for split_name in splits:
             # load the binary data
@@ -214,16 +216,23 @@ def main(rawDirName, binDirName, imDirName, splits, VERSIONS, compute_img_stats)
                 im_name = "{}_{}_{}.jpg".format(y[k], split_name, k)
                 
                 if compute_img_stats and (split_name == "train"):
-                    # store the images
-                    train_imgs.append(np.array(x_im.getdata()))
+                    # convert to numpy
+                    x_pixels = np.array(x_im.getdata())
+                    # number of train images
+                    n_train += 1
+                    # current mean of the images
+                    mean_img = ((n_train-1)*mean_img + x_pixels)/n_train
+                    mean_img2 = ((n_train-1)*mean_img2 + x_pixels**2)/n_train
                 
                 # save the image
                 x_im.save(os.path.join(splitDirName, im_name), "JPEG")
           
-        # compute and save the train set statistics: mean and std images per version
         if compute_img_stats:
-            mean_img = np.mean(train_imgs, axis=0)
-            std_img = np.std(train_imgs, axis=0)
+            # reshape to the image dimensions
+            mean_img = np.reshape(mean_img, (template_im.size[1], template_im.size[0], 3))
+            mean_img2 = np.reshape(mean_img2, (template_im.size[1], template_im.size[0], 3))
+            # compute and save the train set statistics: mean and std images per version
+            std_img = np.sqrt(mean_img2 - mean_img**2)
             np.save(os.path.join(imDirName, "mean_train_img_{}".format(MBversion)), mean_img)
             np.save(os.path.join(imDirName, "std_train_img_{}".format(MBversion)), std_img)
             
@@ -240,7 +249,7 @@ if __name__ == "__main__":
     splits = ("train", "val", "test")
     
     # whether to compute the train images statistics: mean and std
-    compute_img_stats = True
+    compute_img_stats = False
     
     main(rawDirName, binDirName, imDirName, splits, VERSIONS, compute_img_stats)
             

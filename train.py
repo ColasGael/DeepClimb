@@ -51,9 +51,9 @@ def main(args):
     # Choose model
     log.info('Building model {}...'.format(args.name))
 
-    if args.name == 'BinaryClimbCNN':
+    if 'BinaryClimbCNN' in args.name:
         model = BinaryClimbCNN(n_classes) 
-    elif args.name == 'ImageClimbCNN':
+    elif 'ImageClimbCNN' in args.name:
         model = ImageClimbCNN(n_classes)
     else:
         raise NameError('No model named ' + args.name)
