@@ -160,7 +160,7 @@ def main(args):
                 tbx.add_scalar('val/{}'.format(k), v, step)
             
             # visualize examples in Tensorboard
-            util.visualize(tbx, y_pred, step, split=args.val_split, num_visuals=args.num_visuals, val_loader)
+            util.visualize(tbx, y_pred, step, args.val_split, args.num_visuals, val_loader)
 
 
 def evaluate(model, data_loader, device, model_name, gpu_ids):

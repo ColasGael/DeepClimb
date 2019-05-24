@@ -189,7 +189,7 @@ def get_available_devices():
 
 
 def visualize(tbx, y_pred, step, split, num_visuals, data_loader):
-    """Visualize text examples to TensorBoard.
+    """Visualize image examples to TensorBoard.
 
     Args:
         tbx (tensorboardX.SummaryWriter): Summary writer.
@@ -201,19 +201,19 @@ def visualize(tbx, y_pred, step, split, num_visuals, data_loader):
     """
     if num_visuals <= 0:
         return
-    if num_visuals > len(pred_dict):
-        num_visuals = len(pred_dict)
+    if num_visuals > len(y_pred):
+        num_visuals = len(y_pred)
     
     # sample 'num_visuals' random examples from 'split' for visualization
     visual_ids = np.random.choice(list(range(len(y_pred))), size=num_visuals, replace=False)
     
     for i, id_ in enumerate(visual_ids):
         # get example pair
-        x, y = data_loader[id_]
+        x, y = data_loader.dataset.__getitem__(id_, visualize=True)
         # convert to numpy array
-        x = x.array()
+        x = x.numpy()
         # send image to Tensorboard
-        tbx.add_text('{}/{}_of_{} : correct label = {}, predicted label = {}'.format(split, i + 1, num_visuals, y, y_pred[id_]),
+        tbx.add_image('{}set/{}_of_{} : correct label {} , predicted label {}'.format(split, i + 1, num_visuals, y, y_pred[id_]),
                      x,
                      global_step=step)
 

@@ -54,6 +54,11 @@ eval_transformer = transforms.Compose([
     transforms.ToTensor(),                                          # transform it into a torch tensor and put in (1, 1, 1) convention
     transforms.Normalize(MEAN_PIX/255, (1,1,1))])                   # normalize the image
 
+# EVAL image transformation pipeline for visualization (no normalization)
+visual_transformer = transforms.Compose([
+    transforms.Resize(256),                                         # resize to (393, 256) 
+    transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
+    transforms.ToTensor()])                                         # transform it into a torch tensor and put in (1, 1, 1) convention
     
 class ClimbBinaryDataset(Dataset):
     """PyTorch definition of Dataset to deal with the binary representation of examples.
@@ -163,7 +168,7 @@ class ClimbImageDataset(Dataset):
         """
         return len(self.filenames)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx, visualize=True):
         """Get example pair (image, label) from index. Perform transforms on image.
         
         Args:
@@ -174,7 +179,12 @@ class ClimbImageDataset(Dataset):
         """
         
         image = Image.open(self.filenames[idx])  # PIL image
-        image = self.transform(image)
+        
+        if not visualize:
+            image = self.transform(image)
+        else:
+            image = visual_transformer(image)
+            
         
         return image, self.y[idx]
 

@@ -121,7 +121,7 @@ def main(args):
     # Log to TensorBoard
     tbx = SummaryWriter(args.save_dir)
     # visualize examples in Tensorboard
-    util.visualize(tbx, y_pred, 0, split=args.test_split, num_visuals=args.num_visuals, data_loader)
+    util.visualize(tbx, y_pred, 0, args.test_split, args.num_visuals, data_loader)
             
     # Write prediction file
     sub_path = join(args.save_dir, args.test_split + '_' + args.pred_file)
