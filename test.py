@@ -83,7 +83,7 @@ def main(args):
     y_pred = []
 
     with torch.no_grad(), tqdm(total=len(data_loader.dataset)) as progress_bar:
-        for x, y in train_loader: # get batch
+        for x, y in data_loader: # get batch
             # Setup for forward
             x = x.to(device)
 
@@ -120,8 +120,9 @@ def main(args):
 
     # Log to TensorBoard
     tbx = SummaryWriter(args.save_dir)
-    #util.visualize(tbx, pred_dict=pred_dict, step=step, split='val', num_visuals=args.num_visuals)
-
+    # visualize examples in Tensorboard
+    util.visualize(tbx, y_pred, 0, split=args.test_split, num_visuals=args.num_visuals, data_loader)
+            
     # Write prediction file
     sub_path = join(args.save_dir, args.test_split + '_' + args.pred_file)
     log.info('Writing submission file to {}...'.format(sub_path))

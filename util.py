@@ -187,70 +187,35 @@ def get_available_devices():
 
     return device, gpu_ids
 
-# TODO
-def visualize(tbx, pred_dict, eval_path, step, split, num_visuals):
+
+def visualize(tbx, y_pred, step, split, num_visuals, data_loader):
     """Visualize text examples to TensorBoard.
 
     Args:
         tbx (tensorboardX.SummaryWriter): Summary writer.
-        y_pred (dict): dict of predictions of the form id -> pred.
-        y_true (str): Path to eval JSON file.
-        filenames (list of str): List of image examples' filenames
+        y_pred (list of int): List of predicted classes.
         step (int): Number of examples seen so far during training.
         split (str): Name of data split being visualized.
         num_visuals (int): Number of visuals to select at random from preds.
+        dataloaders (DataLoader): DataLoader object for the given split.
     """
     if num_visuals <= 0:
         return
     if num_visuals > len(pred_dict):
         num_visuals = len(pred_dict)
-
-    visual_ids = np.random.choice(list(pred_dict), size=num_visuals, replace=False)
-
-    with open(eval_path, 'r') as eval_file:
-        eval_dict = json.load(eval_file)
+    
+    # sample 'num_visuals' random examples from 'split' for visualization
+    visual_ids = np.random.choice(list(range(len(y_pred))), size=num_visuals, replace=False)
+    
     for i, id_ in enumerate(visual_ids):
-        pred = pred_dict[id_] or 'N/A'
-        example = eval_dict[str(id_)]
-        question = example['question']
-        context = example['context']
-        answers = example['answers']
-
-        gold = answers[0] if answers else 'N/A'
-        tbl_fmt = ('- **Question:** {}\n'
-                   + '- **Context:** {}\n'
-                   + '- **Answer:** {}\n'
-                   + '- **Prediction:** {}')
-        tbx.add_text(tag='{}/{}_of_{}'.format(split, i + 1, num_visuals),
-                     text_string=tbl_fmt.format(question, context, gold, pred),
+        # get example pair
+        x, y = data_loader[id_]
+        # convert to numpy array
+        x = x.array()
+        # send image to Tensorboard
+        tbx.add_text('{}/{}_of_{} : correct label = {}, predicted label = {}'.format(split, i + 1, num_visuals, y, y_pred[id_]),
+                     x,
                      global_step=step)
-
-# TODO
-def save_preds(preds, save_dir, file_name='predictions.csv'):
-    """Save predictions `preds` to a CSV file named `file_name` in `save_dir`.
-
-    Args:
-        preds (list): List of predictions each of the form (id, start, end),
-            where id is an example ID, and start/end are indices in the context.
-        save_dir (str): Directory in which to save the predictions file.
-        file_name (str): File name for the CSV file.
-
-    Returns:
-        save_path (str): Path where CSV file was saved.
-    """
-    # Validate format
-    if (not isinstance(preds, list)
-            or any(not isinstance(p, tuple) or len(p) != 3 for p in preds)):
-        raise ValueError('preds must be a list of tuples (id, start, end)')
-
-    # Make sure predictions are sorted by ID
-    preds = sorted(preds, key=lambda p: p[0])
-
-    # Save to a CSV file
-    save_path = os.path.join(save_dir, file_name)
-    np.savetxt(save_path, np.array(preds), delimiter=',', fmt='%d')
-
-    return save_path
 
 
 def evaluate_preds(y_true, y_pred):
@@ -305,6 +270,7 @@ def evaluate_preds(y_true, y_pred):
     results = {'Acc': accuracy(y_true, y_pred), 'MAE': MAE(y_true, y_pred), 'F1': F1(y_true, y_pred)}
     
     return results
+
    
 def get_save_dir(base_dir, name, training, id_max=100):
     """Get a unique save directory by appending the smallest positive integer

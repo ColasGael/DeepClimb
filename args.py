@@ -71,6 +71,50 @@ def get_setup_args():
     return args
 
 
+def add_train_test_args(parser):
+    """Add arguments common to train.py and test.py"""
+    parser.add_argument('--name',
+                        '-n',
+                        type=str,
+                        required=True,
+                        help='Name of the model to use for train/test.')
+    parser.add_argument('--num_workers',
+                        type=int,
+                        default=4,
+                        help='Number of sub-processes to use per data loader.')
+    parser.add_argument('--save_dir',
+                        type=str,
+                        default='./save/',
+                        help='Base directory for saving information.')
+    parser.add_argument('--batch_size',
+                        type=int,
+                        default=64,
+                        help='Batch size per GPU. Scales automatically when \
+                              multiple GPUs are available.')
+    parser.add_argument('--train_split',
+                        type=str,
+                        default='train',
+                        choices=('train', 'dev'),
+                        help='You can use the development set, small fraction of the train set, for debugging.')
+    parser.add_argument('--val_split',
+                        type=str,
+                        default='val',
+                        choices=('val', 'dev'),
+                        help='You can use the development set, small fraction of the train set, for debugging.')
+    parser.add_argument('--num_visuals',
+                        type=int,
+                        default=10,
+                        help='Number of examples to visualize in TensorBoard.')
+    parser.add_argument('--load_path',
+                        type=str,
+                        default=None,
+                        help='Path to load as a model checkpoint.')         
+    parser.add_argument('--use_image',
+                    type=bool,
+                    default=True,
+                    help='Whether to use the image or the binary representation of examples.')
+    
+    
 def get_train_args():
     """Get arguments needed in train.py."""
     parser = argparse.ArgumentParser('Train a model')
@@ -165,47 +209,3 @@ def get_test_args():
         raise argparse.ArgumentError('Missing required argument --load_path')
 
     return args
-
-
-def add_train_test_args(parser):
-    """Add arguments common to train.py and test.py"""
-    parser.add_argument('--name',
-                        '-n',
-                        type=str,
-                        required=True,
-                        help='Name of the model to use for train/test.')
-    parser.add_argument('--num_workers',
-                        type=int,
-                        default=4,
-                        help='Number of sub-processes to use per data loader.')
-    parser.add_argument('--save_dir',
-                        type=str,
-                        default='./save/',
-                        help='Base directory for saving information.')
-    parser.add_argument('--batch_size',
-                        type=int,
-                        default=64,
-                        help='Batch size per GPU. Scales automatically when \
-                              multiple GPUs are available.')
-    parser.add_argument('--train_split',
-                        type=str,
-                        default='train',
-                        choices=('train', 'dev'),
-                        help='You can use the development set, small fraction of the train set, for debugging.')
-    parser.add_argument('--val_split',
-                        type=str,
-                        default='val',
-                        choices=('val', 'dev'),
-                        help='You can use the development set, small fraction of the train set, for debugging.')
-    parser.add_argument('--num_visuals',
-                        type=int,
-                        default=10,
-                        help='Number of examples to visualize in TensorBoard.')
-    parser.add_argument('--load_path',
-                        type=str,
-                        default=None,
-                        help='Path to load as a model checkpoint.')         
-    parser.add_argument('--use_image',
-                    type=bool,
-                    default=True,
-                    help='Whether to use the image or the binary representation of examples.')

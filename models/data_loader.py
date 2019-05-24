@@ -29,28 +29,30 @@ import torchvision.transforms as transforms
 # MoonBoard grid properties
 GRID_DIMS = (18, 11) # dimensions
 
-# load the blank template of the MoonBoard wall as a numpy array
-rawDirName = "data/raw"
-MBversion = 2016
-template_im = Image.open(os.path.join(rawDirName, "{}_moonboard_empty.png".format(MBversion))).convert('RGB').getdata()                    
+# load the mean and std images 
+imageDirName = "data/image"
+MBversions = (2016, 2017)
+# compute the train image statistics
+mean_image = np.mean([np.load(os.path.join(imageDirName, "mean_train_img_{}.npy".format(MBversion))) for MBversion in MBversions], axis=0)
+std_image = np.mean([np.load(os.path.join(imageDirName, "std_train_img_{}.npy".format(MBversion))) for MBversion in MBversions], axis=0)
 # compute the pixels statistics
-MEAN_PIX = np.mean(template_im, axis=0)
-STD_PIX = np.std(template_im, axis=0)    
+MEAN_PIX = np.mean(np.reshape(mean_image, (-1,3)), axis=0)         # (255, 255, 255) convention
+STD_PIX = np.mean(np.reshape(std_image, (-1,3)), axis=0)           # (255, 255, 255) convention  
 
 # TRAIN image transformation pipeline 
 train_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
     transforms.RandomHorizontalFlip(),                              # randomly flip image horizontally
-    transforms.ToTensor()])                                          # transform it into a torch tensor
-    #transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
+    transforms.ToTensor(),                                          # transform it into a torch tensor and put in (1, 1, 1) convention
+    transforms.Normalize(MEAN_PIX/255, (1,1,1))])                   # normalize the image
 
 # EVAL image transformation pipeline (no horizontal flip)
 eval_transformer = transforms.Compose([
     transforms.Resize(256),                                         # resize to (393, 256) 
     transforms.Lambda(lambda img: img.crop(box=(0, 0, 256, 384))),  # crop to (384, 256)
-    transforms.ToTensor()])                                          # transform it into a torch tensor
-    #transforms.Normalize(MEAN_PIX, STD_PIX)])                       # normalize the image
+    transforms.ToTensor(),                                          # transform it into a torch tensor and put in (1, 1, 1) convention
+    transforms.Normalize(MEAN_PIX/255, (1,1,1))])                   # normalize the image
 
     
 class ClimbBinaryDataset(Dataset):

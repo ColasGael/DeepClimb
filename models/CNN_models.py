@@ -118,7 +118,6 @@ class ImageClimbCNN(nn.Module):
             
         # initialization
         for m in self.modules():
-            print(m)
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             elif isinstance(m, (nn.BatchNorm2d)):
@@ -146,7 +145,7 @@ class ImageClimbCNN(nn.Module):
         padding = int((filter_size-1)/2)
     
         conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, H, W)
-        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=1.)                          # (N, n_channels_out, H, W)
+        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=0.1)                          # (N, n_channels_out, H, W)
         relu = nn.ReLU()                                                                                    # (N, n_channels_out, H, W)
         
         if pool_method == "max":
@@ -176,7 +175,7 @@ class ImageClimbSmallCNN(nn.Module):
         n_channels_in = 3
         
         self.network = nn.Sequential(
-            self._conv_block(n_channels_in, n_channels, filter_size=6, stride=2, use_bn=False),         # shape (N, n_channels, 95, 63)
+            self._conv_block(n_channels_in, n_channels, filter_size=6, stride=2, use_bn=True),         # shape (N, n_channels, 95, 63)
             self._conv_block(n_channels, 2*n_channels, filter_size=5, stride=2),                        # shape (N, 2*n_channels, 23, 15)
             self._conv_block(2*n_channels, 4*n_channels, filter_size=3, stride=2, pool_method="avg"),   # shape (N, 4*n_channels, 1, 1)
             nn.Conv2d(4*n_channels, n_classes, 1, bias=True))

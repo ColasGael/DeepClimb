@@ -84,7 +84,8 @@ def main(args):
 
     # Get optimizer and scheduler
     optimizer = optim.Adam(model.parameters(), args.lr, weight_decay=args.l2_wd)
-    scheduler = sched.LambdaLR(optimizer, lambda s: 1.)  # Constant LR
+    scheduler = sched.LambdaLR(optimizer, 
+                               lambda e: 0.5 * (1 + np.cos(np.pi * e / args.num_epochs)) * (1-0.001*args.lr) + 0.001*args.lr) # Cosine decay
 
     # Get data loader
     log.info('Building dataset...')
@@ -101,8 +102,9 @@ def main(args):
         log.info('Starting epoch {} on {}-set...'.format(epoch, args.train_split))
         with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as progress_bar:
             for x, y in train_loader: # get batch
-                new_im = Image.fromarray(np.moveaxis(np.array(x[0].tolist()), 0, -1), 'RGB')
-                new_im.save("test.jpg")
+                # To visualize an input
+                #x_test = np.moveaxis((np.array(x[0].tolist())*255).astype(np.uint8), 0, -1)
+                #im_test = Image.fromarray(x_test, 'RGB').save("test.jpg")
                 
                 # Setup for forward
                 x = x.to(device)
@@ -123,7 +125,6 @@ def main(args):
                 # Backward
                 loss.backward()
                 optimizer.step()
-                scheduler.step(step // batch_size)
 
                 # Log info to TensorBoard
                 step += batch_size
@@ -133,7 +134,10 @@ def main(args):
                 tbx.add_scalar('train/LR',
                                optimizer.param_groups[0]['lr'],
                                step)
-        
+                
+        # learning rate decay        
+        scheduler.step(epoch)
+
         epochs_till_eval -= 1
         if epochs_till_eval <= 0:
             epochs_till_eval = args.eval_epochs
@@ -154,7 +158,9 @@ def main(args):
             log.info('Visualizing in TensorBoard...')
             for k, v in results.items():
                 tbx.add_scalar('val/{}'.format(k), v, step)
-            #util.visualize(tbx, pred_dict=pred_dict, step=step, split='val', num_visuals=args.num_visuals)
+            
+            # visualize examples in Tensorboard
+            util.visualize(tbx, y_pred, step, split=args.val_split, num_visuals=args.num_visuals, val_loader)
 
 
 def evaluate(model, data_loader, device, model_name, gpu_ids):
