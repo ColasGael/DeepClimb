@@ -1,4 +1,5 @@
-"""Test a model and generate prediction CSV.
+"""Test a model and generate the array of predicted labels.
+Generate visualization.
 
 Usage:
     > python test.py --test_split SPLIT --load_path PATH --name NAME
@@ -6,6 +7,9 @@ Usage:
     > SPLIT is either "val" or "test"
     > PATH is a path to a checkpoint (e.g., save/train/model-01/best.pth.tar)
     > NAME is a name to identify the test run
+    
+Visualization:
+    Saliency maps for 10 random inputs.
 
 Authors:
     Chris Chute (CS224n teaching staff)
@@ -13,13 +17,17 @@ Authors:
     Gael Colas
 """
 
-from os.path import join
+import os
 import util
 from args import get_test_args
 from tqdm import tqdm
 from json import dumps
 from ujson import load as json_load
+import numpy as np
 import csv
+
+# to handle images
+from PIL import Image
 
 import torch
 import torch.nn as nn
@@ -36,11 +44,11 @@ def main(args):
     args.save_dir = util.get_save_dir(args.save_dir, args.name, training=False)
     log = util.get_logger(args.save_dir, args.name)
     log.info('Args: {}'.format(dumps(vars(args), indent=4, sort_keys=True)))
-    device, gpu_ids = util.get_available_devices()
-    args.batch_size *= max(1, len(gpu_ids))
+    device, args.gpu_ids = util.get_available_devices()
+    args.batch_size *= max(1, len(args.gpu_ids))
 
     # Get hold embeddings # TODO
-    log.info('Loading embeddings...')
+    #log.info('Loading embeddings...')
     #word_vectors = util.torch_from_json(args.word_emb_file)
     
     # Number of classes
@@ -62,7 +70,7 @@ def main(args):
     model = nn.DataParallel(model, args.gpu_ids)
     
     log.info('Loading checkpoint from {}...'.format(args.load_path))
-    model, step = util.load_model(model, args.load_path, args.gpu_ids, return_step=False)
+    model = util.load_model(model, args.load_path, args.gpu_ids, return_step=False)
     
     # push model on GPU
     model = model.to(device)
@@ -70,7 +78,7 @@ def main(args):
 
     # Get data loader
     log.info('Building dataset...')
-    data_loaders = fetch_dataloader([args.test_split], args)
+    data_loaders, n_examples = fetch_dataloader([args.test_split], args)
     data_loader = data_loaders[args.test_split]
 
     # Evaluate
@@ -124,13 +132,89 @@ def main(args):
     util.visualize(tbx, y_pred, 0, args.test_split, args.num_visuals, data_loader)
             
     # Write prediction file
-    sub_path = join(args.save_dir, args.test_split + '_' + args.pred_file)
+    sub_path = os.path.join(args.save_dir, args.test_split + '_' + args.pred_file)
     log.info('Writing submission file to {}...'.format(sub_path))
-    with open(sub_path, 'w', newline='', encoding='utf-8') as csv_fh:
-        csv_writer = csv.writer(csv_fh, delimiter=',')
-        csv_writer.writerow(['Id', 'Predicted'])
-        for uuid, y_c in enumerate(y_pred):
-            csv_writer.writerow([uuid, y_c])
+    np.save(sub_path, y_pred)
+#    with open(sub_path, 'w', newline='', encoding='utf-8') as csv_fh:
+#        csv_writer = csv.writer(csv_fh, delimiter=',')
+#        csv_writer.writerow(['Id', 'Predicted'])
+#        for uuid, y_c in enumerate(y_pred):
+#            csv_writer.writerow([uuid, y_c])
+
+    # visualize saliency maps
+    visualize_saliency(model, data_loader, device, args.save_dir, args.test_split, args.num_visuals, n_examples[args.test_split])
+
+def visualize_saliency(model, data_loader, device, save_dir, split, num_visuals, n_examples):
+    """Save saliency maps of image examples.
+
+    Args:
+        model (torch.nn.DataParallel): CNN model to use for the visualization.
+        data_loader (DataLoader): DataLoader object for the given split.
+        device (torch.device): Main device (GPU 0 or CPU).
+        save_dir (str): Which folder to store the visualizations.
+        split (str): Name of data split being visualized.
+        num_visuals (int): Number of visuals to select at random from preds.
+    """
+    if num_visuals <= 0:
+        return
+    if num_visuals > n_examples:
+        num_visuals = n_examples
+        
+    # save the saliency maps
+    save_path = os.path.join(save_dir, "saliency")
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+        
+    with torch.enable_grad():
+        # get batch of examples
+        x, y = next(iter(data_loader))
+        x_leaf = x[:num_visuals]
+        y = y[:num_visuals]
+        
+        # Setup for forward
+        x_leaf.requires_grad = True
+        x = x_leaf.to(device)
+        y = y.to(device)
+        # Forward
+        logits = model(x)
+        loss = F.cross_entropy(logits, y, weight=None, reduction='mean')
+        # Backward
+        loss.backward()
+
+        # get pixel saliency maps
+        saliency_maps = torch.max(torch.abs(x_leaf.grad), (1))[0].numpy()
+        
+        # get predicted classes
+        y = y.cpu().numpy()
+        y_pred = torch.argmax(logits, dim=-1).cpu().numpy()
+    
+    x_array = np.moveaxis(x_leaf.detach().numpy(), 1, -1)
+    
+    # load the mean and std images 
+    imageDirName = "data/image"
+    MBversions = (2016, 2017)
+    # compute the train image statistics
+    mean_image = np.mean([np.load(os.path.join(imageDirName, "mean_train_img_{}.npy".format(MBversion))) for MBversion in MBversions], axis=0)
+    # compute the pixels statistics
+    MEAN_PIX = np.mean(np.reshape(mean_image, (-1,3)), axis=0)         # (255, 255, 255) convention
+    
+    for k in range(num_visuals):
+        # saliency map filename
+        map_name = "{}_{}_{}_map.jpg".format(k, split, y_pred[k])
+        # saliency map
+        x_map = saliency_maps[k]
+        # normalize the saliency map
+        x_map = x_map / np.max(x_map)
+        # convert to an image
+        map_im = Image.fromarray((x_map*255).astype('uint8'))
+        # save to a JPG file
+        map_im.save(os.path.join(save_path, map_name), "JPEG")  
+
+        # save the original image for comparison
+        im_name = "{}_{}_{}.jpg".format(k, split, y[k])
+        x_im = Image.fromarray((x_array[k]*255).astype('uint8'))
+        x_im.save(os.path.join(save_path, im_name), "JPEG") 
+        
 
 
 if __name__ == '__main__':

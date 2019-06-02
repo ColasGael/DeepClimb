@@ -168,7 +168,7 @@ class ClimbImageDataset(Dataset):
         """
         return len(self.filenames)
 
-    def __getitem__(self, idx, visualize=True):
+    def __getitem__(self, idx, visualize=False):
         """Get example pair (image, label) from index. Perform transforms on image.
         
         Args:

@@ -197,7 +197,7 @@ def get_test_args():
                         help='Split to use for testing.')
     parser.add_argument('--pred_file',
                         type=str,
-                        default='predictions.csv',
+                        default='predictions',
                         help='Name for prediction file.')
 
     # Check which dataset to use: image or binary representation of examples

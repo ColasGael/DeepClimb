@@ -44,7 +44,7 @@ def main(args):
     torch.cuda.manual_seed_all(args.seed)
 
     # Get hold embeddings # TODO
-    log.info('Loading embeddings...')
+    #log.info('Loading embeddings...')
     #word_vectors = util.torch_from_json(args.word_emb_file)
     
     # Number of classes
@@ -97,7 +97,10 @@ def main(args):
     log.info('Training on {}-set composed of {} examples...'.format(args.train_split, n_examples[args.train_split]))
     epochs_till_eval = args.eval_epochs
     epoch = step // n_examples[args.train_split]
-    while epoch < args.num_epochs:
+    while epoch < args.num_epochs:                
+        # learning rate decay        
+        scheduler.step(epoch)
+        
         epoch += 1
         log.info('Starting epoch {} on {}-set...'.format(epoch, args.train_split))
         with torch.enable_grad(), tqdm(total=len(train_loader.dataset)) as progress_bar:
@@ -134,9 +137,6 @@ def main(args):
                 tbx.add_scalar('train/LR',
                                optimizer.param_groups[0]['lr'],
                                step)
-                
-        # learning rate decay        
-        scheduler.step(epoch)
 
         epochs_till_eval -= 1
         if epochs_till_eval <= 0:

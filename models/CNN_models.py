@@ -90,13 +90,14 @@ class ImageClimbCNN(nn.Module):
     """CNN architecture to predict the grade class from the image representation of examples.
     
     Architecture: 
-        [CONV3-n_channels*(2^(k//2)) - BN - ReLU - MaxPool2]*n_conv_blocks - [CONV3-n_channels*16 - BN - ReLU - AvgPool(2,3)] - [CONV1-n_classes]
+        [CONV3-n_channels*(2^(k//2)) - BN - ReLU - MaxPool2]*n_conv_blocks - [CONV3-n_channels*16 - BN - ReLU - AvgPool(3,2)] - [CONV1-n_classes]
     
     Remark:
         Image matrix shape: (C, H, W) = (3, 384, 256)
     """
     
-    def __init__(self, n_classes, n_channels=8, n_conv_blocks=8):
+    def __init__(self, n_classes, n_channels=8, n_conv_blocks=7):
+    #def __init__(self, n_classes, n_channels=8, n_conv_blocks=8):
         super(ImageClimbCNN, self).__init__()
         
         n_channels_in = 3
@@ -145,7 +146,7 @@ class ImageClimbCNN(nn.Module):
         padding = int((filter_size-1)/2)
     
         conv = nn.Conv2d(n_channels_in, n_channels_out, filter_size, padding=padding, bias=True)            # (N, n_channels_out, H, W)
-        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=0.1)                          # (N, n_channels_out, H, W)
+        bn = nn.BatchNorm2d(n_channels_out, track_running_stats=True, momentum=0.1)                         # (N, n_channels_out, H, W)
         relu = nn.ReLU()                                                                                    # (N, n_channels_out, H, W)
         
         if pool_method == "max":

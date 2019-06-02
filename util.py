@@ -197,7 +197,7 @@ def visualize(tbx, y_pred, step, split, num_visuals, data_loader):
         step (int): Number of examples seen so far during training.
         split (str): Name of data split being visualized.
         num_visuals (int): Number of visuals to select at random from preds.
-        dataloaders (DataLoader): DataLoader object for the given split.
+        data_loader (DataLoader): DataLoader object for the given split.
     """
     if num_visuals <= 0:
         return
