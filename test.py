@@ -154,23 +154,30 @@ def visualize_saliency(model, data_loader, device, save_dir, split, num_visuals,
         save_dir (str): Which folder to store the visualizations.
         split (str): Name of data split being visualized.
         num_visuals (int): Number of visuals to select at random from preds.
+        n_examples (int): Number of examples in "split".
     """
     if num_visuals <= 0:
         return
     if num_visuals > n_examples:
         num_visuals = n_examples
         
-    # save the saliency maps
-    save_path = os.path.join(save_dir, "saliency")
-    if not os.path.exists(save_path):
-        os.makedirs(save_path)
+    # sample 'num_visuals' random examples from 'split' for visualization
+    visual_ids = np.random.choice(list(range(n_examples)), size=num_visuals, replace=False)   
+        
+    # build a batch of random examples
+        # unnormalized examples for visualization
+    x_visual = torch.cat([data_loader.dataset.__getitem__(idx, visualize=True)[0] for idx in visual_ids])
+        # normalized examples to compute the saliency maps
+    x_leaf = torch.cat([data_loader.dataset[idx][0] for idx in visual_ids])
+        # labels
+    y = torch.cat([data_loader.dataset[idx][1] for idx in visual_ids])
+        
+    # get batch of examples
+    #x, y = next(iter(data_loader))
+    #x_leaf = x[:num_visuals]
+    #y = y[:num_visuals]
         
     with torch.enable_grad():
-        # get batch of examples
-        x, y = next(iter(data_loader))
-        x_leaf = x[:num_visuals]
-        y = y[:num_visuals]
-        
         # Setup for forward
         x_leaf.requires_grad = True
         x = x_leaf.to(device)
@@ -181,22 +188,20 @@ def visualize_saliency(model, data_loader, device, save_dir, split, num_visuals,
         # Backward
         loss.backward()
 
-        # get pixel saliency maps
+        # get pixel saliency maps: maximum of absolute value of channels
         saliency_maps = torch.max(torch.abs(x_leaf.grad), (1))[0].numpy()
         
         # get predicted classes
         y = y.cpu().numpy()
         y_pred = torch.argmax(logits, dim=-1).cpu().numpy()
     
-    x_array = np.moveaxis(x_leaf.detach().numpy(), 1, -1)
+    # change to (B, H, W, C)-convention
+    x_visual = np.moveaxis(x_visual.numpy(), 1, -1)
     
-    # load the mean and std images 
-    imageDirName = "data/image"
-    MBversions = (2016, 2017)
-    # compute the train image statistics
-    mean_image = np.mean([np.load(os.path.join(imageDirName, "mean_train_img_{}.npy".format(MBversion))) for MBversion in MBversions], axis=0)
-    # compute the pixels statistics
-    MEAN_PIX = np.mean(np.reshape(mean_image, (-1,3)), axis=0)         # (255, 255, 255) convention
+    # save the saliency maps
+    save_path = os.path.join(save_dir, "saliency")
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
     
     for k in range(num_visuals):
         # saliency map filename
@@ -212,7 +217,7 @@ def visualize_saliency(model, data_loader, device, save_dir, split, num_visuals,
 
         # save the original image for comparison
         im_name = "{}_{}_{}.jpg".format(k, split, y[k])
-        x_im = Image.fromarray((x_array[k]*255).astype('uint8'))
+        x_im = Image.fromarray((x_visual[k]*255).astype('uint8'))
         x_im.save(os.path.join(save_path, im_name), "JPEG") 
         
 
