@@ -134,6 +134,7 @@ def main(args):
     # Write prediction file
     sub_path = os.path.join(args.save_dir, args.test_split + '_' + args.pred_file)
     log.info('Writing submission file to {}...'.format(sub_path))
+    np.save(os.path.join(args.save_dir, args.test_split + '_true'), y_true)
     np.save(sub_path, y_pred)
 #    with open(sub_path, 'w', newline='', encoding='utf-8') as csv_fh:
 #        csv_writer = csv.writer(csv_fh, delimiter=',')
@@ -166,11 +167,11 @@ def visualize_saliency(model, data_loader, device, save_dir, split, num_visuals,
         
     # build a batch of random examples
         # unnormalized examples for visualization
-    x_visual = torch.cat([data_loader.dataset.__getitem__(idx, visualize=True)[0] for idx in visual_ids])
+    x_visual = torch.stack([data_loader.dataset.__getitem__(idx, visualize=True)[0] for idx in visual_ids])
         # normalized examples to compute the saliency maps
-    x_leaf = torch.cat([data_loader.dataset[idx][0] for idx in visual_ids])
+    x_leaf = torch.stack([data_loader.dataset[idx][0] for idx in visual_ids])
         # labels
-    y = torch.cat([data_loader.dataset[idx][1] for idx in visual_ids])
+    y = torch.LongTensor([data_loader.dataset[idx][1] for idx in visual_ids])
         
     # get batch of examples
     #x, y = next(iter(data_loader))

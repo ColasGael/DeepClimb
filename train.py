@@ -85,7 +85,7 @@ def main(args):
     # Get optimizer and scheduler
     optimizer = optim.Adam(model.parameters(), args.lr, weight_decay=args.l2_wd)
     scheduler = sched.LambdaLR(optimizer, 
-                               lambda e: 0.5 * (1 + np.cos(np.pi * e / args.num_epochs)) * (1-0.001*args.lr) + 0.001*args.lr) # Cosine decay
+                               lambda e: 0.5 * (1 + np.cos(np.pi * e / args.num_epochs)) * (1-0.01*args.lr) + 0.01*args.lr) # Cosine decay
 
     # Get data loader
     log.info('Building dataset...')
