@@ -1,5 +1,5 @@
 # Deep-Climb
-by Gael Colas graduate student from Stanford University.
+by Gael Colas, graduate student from Stanford University.
 
 This is my final project for the CS231n: "Convolutional Neural Networks for Visual Recognition" class at Stanford (2019). 
 Our teachers were Pr. Fei-Fei Li, Pr. Justin Johnson and Pr. Serena Yeung.
